@@ -1,0 +1,3 @@
+{
+  "/api/affiliate/payment-intent/route": "app/api/affiliate/payment-intent/route.js"
+}

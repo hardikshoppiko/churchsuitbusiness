@@ -1,0 +1,79 @@
+[00:00:00.590] Server  LOG     ✓ Ready in 419ms
+[00:00:04.546] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:05.955] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:00:10.213] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:10.346] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <DevRootHTTPAccessFallbackBoundary>
+      <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+        <HTTPAccessFallbackErrorBoundary pathname="/account/l..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <Head>
+              <__next_root_layout_boundary__>
+                <SegmentViewNode type="layout" pagePath="layout.js">
+                  <SegmentTrieNode>
+                  <link>
+                  <script>
+                  <script>
+                  <script>
+                  <script>
+                  <script>
+                  <script>
+                  <script>
+                  <script>
+                  <RootLayout>
+                    <html lang="en">
+                      <head>
+                      <body className="d-flex fle..." suppressHydrationWarning={true}>
+                        <ReduxProvider preloadedState={{settings:{...}}}>
+                          <Provider store={{...}}>
+                            ...
+                              <Primitive.button.Slot type="button" aria-haspopup="dialog" aria-expanded={false} ...>
+                                <Primitive.button.SlotClone type="button" aria-haspopup="dialog" aria-expanded={false} ...>
+                                  <Button variant="outline" size="icon" aria-label="Menu" type="button" ...>
+                                    <button
+                                      data-slot="sheet-trigger"
+                                      data-variant="outline"
+                                      data-size="icon"
+                                      className={"inline-flex items-center justify-center gap-2 whitespace-nowrap !ro..."}
+                                      aria-label="Menu"
+                                      type="button"
+                                      aria-haspopup="dialog"
+                                      aria-expanded={false}
++                                     aria-controls="radix-_R_a6lb_"
+-                                     aria-controls="radix-_R_18mlb_"
+                                      data-state="closed"
+                                      onClick={function handleEvent}
+                                      ref={function}
+                                    >
+                            <main>
+                            <Footer>
+                            <GlobalModal>
+                              <BSModal show={false} onClose={function onClose} title="" size="md" showHeader={true} ...>
+                                <div
+                                  className="modal fade"
++                                 id="bsmodal__R_ilb_"
+-                                 id="bsmodal__R_26lb_"
+                                  tabIndex={-1}
+                                  aria-hidden="true"
+                                  ref={{current:null}}
+                                >
+                        ...
+              ...
+
+[00:00:14.960] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:16.832] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:18.225] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:01:10.982] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

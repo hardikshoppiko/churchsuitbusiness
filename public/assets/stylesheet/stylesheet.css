@@ -1,0 +1,87 @@
+/* ===== Flat / Professional Theme ===== */
+
+/* Set a premium brand palette (Bootstrap 5 uses CSS vars) */
+:root {
+  --bs-primary: #0f172a;          /* deep navy */
+  --bs-primary-rgb: 15, 23, 42;
+
+  --brand-accent: #c9a14a;        /* soft gold */
+  --brand-accent-hover: #b58f3f;
+
+  --header-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+
+}
+
+body {
+  /* font-family: "Inter", system-ui, sans-serif; */
+  font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+}
+
+#content {
+  min-height: 600px;
+}
+
+header .navbar .navbar-brand img {
+  height: 35px;
+}
+
+/* Flat header look */
+.header-flat {
+  box-shadow: var(--header-shadow);
+}
+
+/* Brand styling */
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(var(--bs-primary-rgb), 0.08);
+  color: var(--bs-primary);
+}
+
+.brand-text {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--bs-primary);
+}
+
+/* Nav links */
+.navbar .nav-link {
+  transition: all 0.15s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+  background: rgba(var(--bs-primary-rgb), 0.06);
+  color: var(--bs-primary) !important;
+}
+
+/* Register button (flat gold) */
+.btn-brand {
+  background: var(--brand-accent);
+  border-color: var(--brand-accent);
+  color: #111;
+  font-weight: 700;
+}
+
+.btn-brand:hover {
+  background: var(--brand-accent-hover);
+  border-color: var(--brand-accent-hover);
+  color: #111;
+}
+
+.home-page ul li {
+  font-size: 1.2rem;
+  line-height: 1.6rem;
+}
+
+.home-page .top-reason-to-choose-us h1 {
+  margin-bottom: 24px;
+  font-size: 60px;
+  line-height: 72px;
+  padding: 0px;
+}
+
+.plan-row:hover {
+  background: rgba(15, 23, 42, 0.03);
+}

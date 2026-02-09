@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/affiliate/payment-intent/route.js")
+R.c("server/chunks/[root-of-the-server]__45387662._.js")
+R.c("server/chunks/[root-of-the-server]__fac16343._.js")
+R.c("server/chunks/[root-of-the-server]__dee5f263._.js")
+R.c("server/chunks/[root-of-the-server]__8a65c5e6._.js")
+R.c("server/chunks/[root-of-the-server]__8f5ebbc3._.js")
+R.c("server/chunks/_506797fe._.js")
+R.c("server/chunks/_next-internal_server_app_api_affiliate_payment-intent_route_actions_60902a67.js")
+R.m(80605)
+module.exports=R.m(80605).exports

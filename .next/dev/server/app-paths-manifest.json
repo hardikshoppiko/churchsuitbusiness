@@ -1,0 +1,7 @@
+{
+  "/account/login/page": "app/account/login/page.js",
+  "/api/account/me/route": "app/api/account/me/route.js",
+  "/api/geo/zones/route": "app/api/geo/zones/route.js",
+  "/page": "app/page.js",
+  "/register/page": "app/register/page.js"
+}

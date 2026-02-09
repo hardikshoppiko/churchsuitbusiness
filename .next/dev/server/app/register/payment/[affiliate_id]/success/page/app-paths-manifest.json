@@ -1,0 +1,3 @@
+{
+  "/register/payment/[affiliate_id]/success/page": "app/register/payment/[affiliate_id]/success/page.js"
+}
