@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import { db } from "@/lib/db";
 import {
   generateSalt,
@@ -13,10 +15,10 @@ import {
 
 
 function stableStringify(obj) {
-  if (!obj || typeof obj !== "object") return JSON.stringify(obj ?? {});
-  const sorted = {};
-  for (const k of Object.keys(obj).sort()) sorted[k] = obj[k];
-  return JSON.stringify(sorted);
+  const allKeys = [];
+  JSON.stringify(obj, (k, v) => (allKeys.push(k), v));
+  allKeys.sort();
+  return JSON.stringify(obj, allKeys);
 }
 
 function hashPayload(obj) {
@@ -24,80 +26,34 @@ function hashPayload(obj) {
   return crypto.createHash("sha1").update(s).digest("hex");
 }
 
-/**
- * Idempotent activity logger:
- * - Skips duplicate logs when same affiliate_id + key + same payload hash
- *   is already logged within `dedupeSeconds` window.
- */
-async function recordAffiliateActivity(affiliate_id, key, dataObj, ip, dedupeSeconds = 120) {
-  const affId = Number(affiliate_id || 0);
-  if (!affId) return;
+export async function recordAffiliateActivity({
+  affiliate_id,
+  key,
+  data = {},
+  ip = "",
+}) {
+  const aid = Number(affiliate_id || 0);
+  if (!aid || !key) return false;
 
-  const k = String(key || "").trim();
-  if (!k) return;
+  // store payload + hash (hash is optional but helpful for debugging)
+  const payload = { ...data, _hash: hashPayload(data) };
+  const json = JSON.stringify(payload);
 
-  const payload = dataObj ?? {};
-  const payloadHash = hashPayload(payload);
+  // ✅ Insert once per (affiliate_id + key)
+  // ✅ Next time same step comes, it will UPDATE instead of inserting a new row
+  const sql = `
+    INSERT INTO affiliate_activity
+      (affiliate_id, \`key\`, data, ip, date_added)
+    VALUES
+      ('${aid}', '${String(key).replaceAll("'", "''")}', '${json.replaceAll("'", "''")}', '${String(ip).replaceAll("'", "''")}', NOW())
+    ON DUPLICATE KEY UPDATE
+      data = VALUES(data),
+      ip = VALUES(ip),
+      date_added = NOW()
+  `;
 
-  // ✅ check latest same key for this affiliate
-  const [rows] = await db.query(`
-    SELECT activity_id, data, date_added
-    FROM affiliate_activity
-    WHERE affiliate_id='${affId}'
-      AND \`key\`='${dbEscape(k)}'
-    ORDER BY activity_id DESC
-    LIMIT 1
-  `);
-
-  if (rows?.length) {
-    const last = rows[0];
-
-    // last.data is stored JSON string
-    let lastHash = "";
-    try {
-      const parsed = JSON.parse(String(last.data || "{}"));
-      lastHash = parsed?._hash || "";
-    } catch {}
-
-    // compare time window (server-side)
-    const [timeRows] = await db.query(`
-      SELECT (TIMESTAMPDIFF(SECOND, '${dbEscape(last.date_added)}', NOW())) AS diff_sec
-    `);
-    const diffSec = Number(timeRows?.[0]?.diff_sec || 999999);
-
-    // ✅ if same payload + recent → skip duplicate insert
-    if (lastHash === payloadHash && diffSec <= dedupeSeconds) {
-      // still update affiliate.date_update to reflect activity ping (optional)
-      await db.query(`
-        UPDATE affiliate SET date_update=NOW()
-        WHERE affiliate_id='${affId}'
-        LIMIT 1
-      `);
-      return;
-    }
-  }
-
-  // store payload + internal hash
-  const finalData = {
-    ...payload,
-    _hash: payloadHash,
-  };
-
-  await db.query(`
-    INSERT INTO affiliate_activity SET
-      affiliate_id='${affId}',
-      \`key\`='${dbEscape(k)}',
-      \`data\`='${dbEscape(JSON.stringify(finalData))}',
-      ip='${dbEscape(ip || "")}',
-      date_added=NOW()
-  `);
-
-  // keep affiliate "last activity" updated
-  await db.query(`
-    UPDATE affiliate SET date_update=NOW()
-    WHERE affiliate_id='${affId}'
-    LIMIT 1
-  `);
+  await db.query(sql);
+  return true;
 }
 
 /**
@@ -644,14 +600,13 @@ export async function POST(req) {
           WHERE affiliate_id=${incomingAffiliateId}
           LIMIT 1
         `);
-
-        await recordAffiliateActivity(affiliate_id, "register_step1_submit", {
-          step: 1,
-          firstname: body.firstname,
-          lastname: body.lastname,
-          email: body.email,
-          telephone: body.telephone,
-        }, ip, 120);
+        
+        await recordAffiliateActivity({
+          affiliate_id: incomingAffiliateId,
+          key: "register_step1_submit",
+          data: { step: 1, firstname: body.firstname, lastname: body.lastname, email: body.email, telephone: body.telephone },
+          ip,
+        });
 
         return Response.json({ success: true, step: 1, affiliate_id: incomingAffiliateId, mode: "updated" });
       }
@@ -725,13 +680,12 @@ export async function POST(req) {
     const [result] = await db.query(affiliateSql);
     const affiliate_id = result.insertId;
 
-    await recordAffiliateActivity(affiliate_id, "register_step1_submit", {
-      step: 1,
-      firstname: body.firstname,
-      lastname: body.lastname,
-      email: body.email,
-      telephone: body.telephone,
-    }, ip, 120);
+    await recordAffiliateActivity({
+      affiliate_id: affiliate_id,
+      key: "register_step1_submit",
+      data: { step: 1, firstname: body.firstname, lastname: body.lastname, email: body.email, telephone: body.telephone },
+      ip,
+    });
 
     return Response.json({ success: true, step: 1, affiliate_id, mode: "inserted" });
   }
@@ -805,12 +759,12 @@ export async function POST(req) {
       WHERE affiliate_id=${affiliate_id}
     `);
     
-    await recordAffiliateActivity(affiliate_id, "register_step2_submit", {
-      step: 2,
-      affiliate_plan_id,
-      business_name: body.business_name,
-      website: website_domain || "",
-    }, ip, 120);
+    await recordAffiliateActivity({
+      affiliate_id: affiliate_id,
+      key: "register_step2_submit",
+      data: { step: 2, affiliate_plan_id: affiliate_plan_id, business_name: body.business_name, website: website_domain || "" },
+      ip,
+    });
 
     // NOTE:
     // price_schema/default_markup/retail_price_commission/is_catalog_access are used later in step3 settings/demo creation.
@@ -899,10 +853,19 @@ export async function POST(req) {
       zone_id,
     }, ip, 120);
 
-    await recordAffiliateActivity(affiliate_id, "redirect_to_payment", {
-      affiliate_id,
-      url: `/register/payment/${affiliate_id}`,
-    }, ip, 120);
+    await recordAffiliateActivity({
+      affiliate_id: affiliate_id,
+      key: "register_step3_submit",
+      data: { step: 3, address_1: address_1, address_2: address_2, city: body.city, postcode: postcode, country_id, zone_id },
+      ip,
+    });
+
+    await recordAffiliateActivity({
+      affiliate_id: affiliate_id,
+      key: "redirect_to_payment",
+      data: { step: 4, affiliate_id: affiliate_id, url: `/register/payment/${affiliate_id}` },
+      ip,
+    });
 
     // --------------------------------------------
     // NOW RUN YOUR ORIGINAL "heavy" setup

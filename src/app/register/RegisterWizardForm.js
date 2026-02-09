@@ -616,7 +616,7 @@ export default function RegisterWizardForm({
   }, [plans, selectedPlanId]);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8">
+    <div className="w-full max-w-none px-3 py-3 lg:mx-auto lg:max-w-5xl lg:px-4 lg:py-8">
       {/* Premium background */}
       <div className="relative overflow-hidden rounded-3xl border bg-background shadow-sm">
         <div className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_top,black,transparent_65%)]">
@@ -626,7 +626,7 @@ export default function RegisterWizardForm({
 
         <div className="relative grid gap-0 lg:grid-cols-[360px_1fr]">
           {/* Left: steps / summary */}
-          <div className="border-b p-6 lg:border-b-0 lg:border-r">
+          <div className="hidden lg:block border-b p-6 lg:border-b-0 lg:border-r">
             <div className="space-y-2">
               <div className="text-sm font-semibold text-primary">Affiliate Registration</div>
               <div className="text-2xl font-bold tracking-tight">Create your store</div>
@@ -668,6 +668,21 @@ export default function RegisterWizardForm({
 
           {/* Right: form */}
           <div className="p-6 lg:p-8">
+            {/* Mobile step indicator */}
+            <div className="mb-4 lg:hidden">
+              <div className="rounded-xl border bg-muted/40 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold">Affiliate Registration</div>
+                  <div className="text-sm text-muted-foreground">
+                    Step <span className="font-semibold text-foreground">{step}</span> / 3
+                  </div>
+                </div>
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                </div>
+              </div>
+            </div>
+
             <Card className="border-0 shadow-none bg-transparent">
               <CardHeader className="px-0 pt-0">
                 <CardTitle className="text-xl">{stepTitle}</CardTitle>
