@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 18, "column": 0}, "map": {"version":3,"sources":["file:///Users/apcrat/Documents/react/church_suit_business/affiliates/src/app/about/page.js"],"sourcesContent":["export default function AboutPage() {\n  return (\n    <main className=\"container py-5\">\n      <h1 className=\"mb-3\">\n        <i className=\"fa-solid fa-address-card me-2\"></i>\n        About\n      </h1>\n\n      <p>This project is ready for MySQL APIs and future Stripe subscription setup.</p>\n\n      <a className=\"btn btn-secondary\" href=\"/\">\n        <i className=\"fa-solid fa-arrow-left me-2\"></i>\n        Back\n      </a>\n    </main>\n  );\n}"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAK,WAAU;;0BACd,8OAAC;gBAAG,WAAU;;kCACZ,8OAAC;wBAAE,WAAU;;;;;;oBAAoC;;;;;;;0BAInD,8OAAC;0BAAE;;;;;;0BAEH,8OAAC;gBAAE,WAAU;gBAAoB,MAAK;;kCACpC,8OAAC;wBAAE,WAAU;;;;;;oBAAkC;;;;;;;;;;;;;AAKvD"}}]
-}

@@ -1,8 +1,0 @@
-{
-  "version": 1,
-  "functions": {
-    "/api/affiliate/status": {},
-    "/api/common": {},
-    "/api/stripe/webhook": {}
-  }
-}

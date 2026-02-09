@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 22, "column": 0}, "map": {"version":3,"sources":["file:///Users/apcrat/Documents/react/church_suit_business/affiliates/src/app/account/%28protected%29/page.js"],"sourcesContent":["import { getSession } from \"@/lib/auth\";\n\nexport default async function AccountHome() {\n  const session = await getSession();\n\n  // console.log(\"Session in AccountHome:\", session);\n\n  return (\n    <div className={`container py-4`}>\n      <h3>My Account</h3>\n      <div className=\"mt-2\">\n        Welcome, <b>{session?.firstname}</b>\n      </div>\n    </div>\n  );\n}"],"names":[],"mappings":";;;;;AAAA;;;AAEe,eAAe;IAC5B,MAAM,UAAU,MAAM,IAAA,gIAAU;IAEhC,mDAAmD;IAEnD,qBACE,8OAAC;QAAI,WAAW,CAAC,cAAc,CAAC;;0BAC9B,8OAAC;0BAAG;;;;;;0BACJ,8OAAC;gBAAI,WAAU;;oBAAO;kCACX,8OAAC;kCAAG,SAAS;;;;;;;;;;;;;;;;;;AAI9B"}}]
-}
