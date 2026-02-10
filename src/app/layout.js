@@ -15,9 +15,7 @@ export default async function RootLayout({ children }) {
   // FULL settings (server-only)
   const settingsData = await getSiteSettings(0);
 
-  const maintenanceEnabled =
-    settingsData?.config?.config_maintenance === "1" ||
-    settingsData?.config?.config_maintenance === "true";
+  const maintenanceEnabled = settingsData?.config?.config_maintenance === "1" || settingsData?.config?.config_maintenance === "true";
 
   // ✅ only safe subset goes to client
   const publicSettings = pickPublicSettings(settingsData);

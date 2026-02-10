@@ -1,8 +1,14 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "wsf_session";
-const MAX_AGE_SEC = 60 * 60 * 24 * 7; // 7 days
+const COOKIE_NAME = process.env.LOGIN_COOKIE_NAME || "wsf_session";
+
+// safe parse (env can be undefined or invalid)
+const MAX_AGE_SEC = (() => {
+  const raw = process.env.LOGIN_COOKIE_MAX_AGE;
+  const n = parseInt(String(raw || ""), 10);
+  return Number.isFinite(n) && n > 0 ? n : 60 * 60 * 24 * 7; // fallback 7 days
+})();
 
 function getSecret() {
   const s = process.env.AUTH_SECRET;

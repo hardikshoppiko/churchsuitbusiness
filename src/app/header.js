@@ -162,6 +162,20 @@ export default function Header() {
                       </Link>
                     </DropdownMenuItem>
 
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/account/invoices"
+                        className="
+                          flex w-full items-center gap-2 rounded-lg px-2 py-2
+                          no-underline text-slate-900
+                          hover:bg-slate-100 cursor-pointer text-decoration-none text-dark
+                        "
+                      >
+                        <i className="fa-solid fa-file-invoice" />
+                        Invoices
+                      </Link>
+                    </DropdownMenuItem>
+
                     <DropdownMenuSeparator className="my-1" />
 
                     <DropdownMenuItem
@@ -215,6 +229,12 @@ export default function Header() {
                           <Link href="/account/profile" onClick={() => setSheetOpen(false)}>
                             <Button variant="outline" className="w-100 justify-content-start">
                               Profile
+                            </Button>
+                          </Link>
+
+                          <Link href="/account/invoices" onClick={() => setSheetOpen(false)}>
+                            <Button variant="outline" className="w-100 justify-content-start">
+                              Invoices
                             </Button>
                           </Link>
 

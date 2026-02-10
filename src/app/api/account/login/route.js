@@ -41,9 +41,16 @@ export async function POST(req) {
     }
 
     const ok = ocVerifyPassword(password, user.salt, user.password);
+
     if (!ok) {
       return Response.json({ success: false, message: "Invalid login or password" }, { status: 401 });
     }
+
+    const [affiliateRows] = await db.query("SELECT * FROM affiliate WHERE affiliate_id=? LIMIT 1", [user.affiliate_id]);
+
+    const affiliateData = affiliateRows?.[0];
+
+    // console.log(`Affiliate Data: ${JSON.stringify(affiliateData)}`);
 
     await createSession({
       affiliate_user_id: Number(user.affiliate_user_id),
@@ -52,6 +59,10 @@ export async function POST(req) {
       telephone: String(user.telephone || ""),
       firstname: String(user.firstname || ""),
       lastname: String(user.lastname || ""),
+      store_name: String(affiliateData?.store_name || ""),
+      website: String(affiliateData?.website || ""),
+      start_date: String(affiliateData?.start_date || ""),
+      end_date: String(affiliateData?.end_date || ""),
     });
 
     return Response.json({
@@ -65,6 +76,10 @@ export async function POST(req) {
         lastname: user.lastname,
         email: user.email,
         telephone: user.telephone,
+        store_name: user.store_name,
+        website: user.website,
+        start_date: user.start_date,
+        end_date: user.end_date,
       },
     });
   } catch (e) {
