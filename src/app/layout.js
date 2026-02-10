@@ -7,27 +7,29 @@ import Header from "./header";
 import Footer from "./footer";
 import GlobalModal from "@/components/GlobalModal";
 
-import { getSiteSettings } from "@/lib/settings";
+import { getSiteSettings, pickPublicSettings } from "@/lib/settings";
 
 import MaintenancePage from "./maintenance/page";
 
 export default async function RootLayout({ children }) {
-  // Load settings FIRST
+  // FULL settings (server-only)
   const settingsData = await getSiteSettings(0);
 
-  // OpenCart-style maintenance flag
-  const maintenanceEnabled = settingsData?.config?.config_maintenance === "1" || settingsData?.config?.config_maintenance === "true";
+  const maintenanceEnabled =
+    settingsData?.config?.config_maintenance === "1" ||
+    settingsData?.config?.config_maintenance === "true";
 
-  // Redux preload
+  // ✅ only safe subset goes to client
+  const publicSettings = pickPublicSettings(settingsData);
+
   const preloadedState = {
     settings: {
       loaded: true,
       store_id: 0,
-      data: settingsData,
+      data: publicSettings, // ✅ NOT full settingsData
     },
   };
 
-  // MAINTENANCE MODE
   if (maintenanceEnabled) {
     return (
       <html lang="en">
@@ -35,18 +37,22 @@ export default async function RootLayout({ children }) {
           <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css" />
           <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css" />
         </head>
-        <body suppressHydrationWarning><MaintenancePage /></body>
+        <body suppressHydrationWarning>
+          <MaintenancePage />
+        </body>
       </html>
     );
   }
 
-  // NORMAL MODE
   return (
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap"
+          rel="stylesheet"
+        />
 
         <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css" />
         <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css" />
@@ -59,8 +65,6 @@ export default async function RootLayout({ children }) {
           <Header />
           <main className="flex-grow-1">{children}</main>
           <Footer />
-
-          {/* ✅ Global modal mounted ONCE for the whole app */}
           <GlobalModal />
         </ReduxProvider>
 
