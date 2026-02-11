@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
+// ✅ TOAST
+import { useToast } from "@/components/ui/use-toast";
+
 function Field({ label, required, error, children }) {
   return (
     <div className="space-y-2">
@@ -34,6 +37,9 @@ function WarningBar({ show }) {
 export default function ContactForm({ session, storeName = "Support" }) {
   const [serverMsg, setServerMsg] = useState(null);
   const [serverErr, setServerErr] = useState(null);
+
+  // ✅ TOAST
+  const { toast } = useToast();
 
   const defaults = useMemo(() => {
     return {
@@ -70,20 +76,43 @@ export default function ContactForm({ session, storeName = "Support" }) {
 
     try {
       console.log("CONTACT FORM:", values);
+
       setServerMsg("Message sent successfully. Our team will contact you soon.");
-      
+
+      // ✅ TOAST (success)
+      toast({
+        title: "Message sent",
+        description: `Thanks! ${storeName} will contact you soon.`
+      });
+
       // TODO: connect API later
 
       reset();
     } catch (e) {
       setServerErr("Failed to send message. Please try again.");
+
+      // ✅ TOAST (error)
+      toast({
+        title: "Failed to send",
+        description: "Please try again.",
+        variant: "destructive"
+      });
     }
   }
 
+  // ✅ TOAST (validation errors on submit)
+  function onInvalid() {
+    toast({
+      title: "Please fix the errors",
+      description: "Check the highlighted fields and try again.",
+      variant: "destructive"
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
       {/* Server messages */}
-      {serverErr ? (
+      {/* {serverErr ? (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {serverErr}
         </div>
@@ -93,10 +122,10 @@ export default function ContactForm({ session, storeName = "Support" }) {
         <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           {serverMsg}
         </div>
-      ) : null}
+      ) : null} */}
 
       {/* OpenCart-like warning bar */}
-      <WarningBar show={showWarning} />
+      {/* <WarningBar show={showWarning} /> */}
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="First Name" required error={errors.firstname?.message}>

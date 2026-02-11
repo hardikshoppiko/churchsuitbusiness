@@ -11,14 +11,18 @@ import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/components/ui/use-toast";
 
-function isValidEmail(v) {
+function isValidLogin(v) {
   const s = String(v || "").trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+  if (!s) return false;
+
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+  const digits = s.replace(/\D/g, "");
+  const isPhone = /^\d{10,15}$/.test(digits); // ✅ mobile
+  return isEmail || isPhone;
 }
 
 export default function ForgotPasswordForm() {
   const { toast } = useToast();
-
   const [loading, setLoading] = useState(false);
 
   const {
@@ -26,7 +30,7 @@ export default function ForgotPasswordForm() {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    defaultValues: { email: "" },
+    defaultValues: { login: "" },
     mode: "onChange",
   });
 
@@ -34,35 +38,34 @@ export default function ForgotPasswordForm() {
     setLoading(true);
 
     try {
-      // ✅ your API route (create later): /api/account/forgot-password
+      // ✅ API already supports: email | username | login
       const res = await fetch("/api/account/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
-        body: JSON.stringify({ email: String(values.email || "").trim() }),
+        body: JSON.stringify({ login: String(values.login || "").trim() }),
       });
 
       const data = await res.json().catch(() => ({}));
 
-      // Always show generic success (security best practice)
       if (!res.ok) {
         toast({
           title: "Something went wrong",
           description: data?.message || "Please try again.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
 
       toast({
         title: "Check your email",
-        description: "If an account exists, you'll receive a password reset link shortly."
+        description: "If an account exists, you'll receive a password reset link shortly.",
       });
     } catch {
       toast({
         title: "Network error",
         description: "Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -77,26 +80,26 @@ export default function ForgotPasswordForm() {
           <CardHeader className="p-0">
             <CardTitle className="text-2xl">Forgot your password?</CardTitle>
             <CardDescription className="mt-2">
-              Enter your email address and we’ll send a reset link.
+              Enter your email or mobile number and we’ll send a reset link.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="p-0 mt-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="login">Email or Mobile</Label>
                 <Input
-                  id="email"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  {...register("email", {
-                    required: "Email is required",
-                    validate: (v) => isValidEmail(v) || "Enter a valid email",
+                  id="login"
+                  placeholder="you@example.com or 10 digit mobile"
+                  autoComplete="username"
+                  {...register("login", {
+                    required: "Email or Mobile is required",
+                    validate: (v) => isValidLogin(v) || "Enter a valid email or mobile number",
                   })}
-                  className={errors.email ? "border-red-500 focus-visible:ring-red-500/30" : ""}
+                  className={errors.login ? "border-red-500 focus-visible:ring-red-500/30" : ""}
                 />
-                {errors.email ? (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                {errors.login ? (
+                  <p className="text-sm text-red-600">{errors.login.message}</p>
                 ) : null}
               </div>
 
@@ -121,7 +124,7 @@ export default function ForgotPasswordForm() {
               </div>
 
               <div className="text-xs text-muted-foreground">
-                For security, we won't confirm whether an email exists.
+                For security, we won't confirm whether an account exists.
               </div>
             </form>
           </CardContent>
