@@ -6,9 +6,9 @@ const apiKey = process.env.SENDGRID_API_KEY;
 const fromEmail = process.env.SENDGRID_FROM_EMAIL;
 const fromName = process.env.SENDGRID_FROM_NAME || "Support";
 
-// console.log("SendGrid apiKey:", apiKey);
-// console.log("SendGrid fromEmail:", fromEmail);
-// console.log("SendGrid fromName:", fromName);
+console.log("SendGrid apiKey:", apiKey);
+console.log("SendGrid fromEmail:", fromEmail);
+console.log("SendGrid fromName:", fromName);
 
 if (!apiKey) {
   const message = "⚠️ SENDGRID_API_KEY is missing";

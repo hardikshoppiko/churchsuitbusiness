@@ -83,6 +83,8 @@ export default function Header() {
 
   // console.log("NODE_ENV:", process.env.NODE_ENV);
 
+  console.log(process.env.STORE_NAME);
+
   return (
     <header className="sticky-top bg-white border-bottom">
       <nav className="navbar navbar-light bg-white py-2">

