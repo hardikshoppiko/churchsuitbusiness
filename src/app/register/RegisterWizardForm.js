@@ -20,6 +20,9 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+// ✅ TOAST
+import { useToast } from "@/components/ui/use-toast";
+
 /* ================================
    Helpers
 ================================ */
@@ -68,16 +71,10 @@ function saveWizard(data) {
 function clearWizard() {
   if (typeof window === "undefined") return;
 
-  // main wizard state
   localStorage.removeItem(LS_KEY);
-
-  // affiliate id cache
   localStorage.removeItem("affiliate_register_id");
-
-  // IMPORTANT: you have a bad key named "undefined" (as per screenshot)
   localStorage.removeItem("undefined");
 
-  // optional: remove any old keys you might have used earlier
   Object.keys(localStorage).forEach((k) => {
     if (k.startsWith("affiliate_register_") || k.startsWith("affiliate_registerWizard")) {
       localStorage.removeItem(k);
@@ -107,9 +104,7 @@ function StepPill({ active, done, number, label }) {
         <div className={cn("text-sm font-semibold", active ? "text-foreground" : "text-muted-foreground")}>
           {label}
         </div>
-        <div className="text-xs text-muted-foreground">
-          Step {number}
-        </div>
+        <div className="text-xs text-muted-foreground">Step {number}</div>
       </div>
     </div>
   );
@@ -174,6 +169,9 @@ export default function RegisterWizardForm({
   defaultZoneId = 0,
 }) {
   const router = useRouter();
+
+  // ✅ TOAST
+  const { toast } = useToast();
 
   const [step, setStep] = useState(1);
   const [affiliateId, setAffiliateId] = useState(null);
@@ -370,9 +368,33 @@ export default function RegisterWizardForm({
         setValue("is_domain_available", 0);
       }
       setDomainInfo(data);
+
+      // ✅ TOAST (domain check result)
+      if (data?.error && data?.domain_not_available) {
+        toast({
+          title: "Domain not available",
+          description: String(data?.error || "Please try another domain."),
+          variant: "destructive",
+          position: "top-right",
+        });
+      } else if (data?.success || data?.domain_found) {
+        toast({
+          title: "Domain looks available",
+          description: String(data?.domain_found || data?.success || "You can continue."),
+          position: "top-right",
+        });
+      }
     } catch {
       setDomainInfo({ error: "Domain check failed. Please try again." });
       setValue("is_domain_available", 0);
+
+      // ✅ TOAST
+      toast({
+        title: "Domain check failed",
+        description: "Please try again.",
+        variant: "destructive",
+        position: "top-right",
+      });
     } finally {
       setDomainChecking(false);
     }
@@ -396,6 +418,13 @@ export default function RegisterWizardForm({
       setValue("is_customer_own_domain", 1);
       setValue("is_domain_available", 1);
       setDomainInfo(null);
+
+      // ✅ TOAST
+      toast({
+        title: "Using your own domain",
+        description: "You can continue without availability check.",
+        position: "top-right",
+      });
     } else {
       setValue("is_customer_own_domain", 0);
     }
@@ -419,7 +448,16 @@ export default function RegisterWizardForm({
     setServerErr(null);
 
     const ok = await trigger(["firstname", "lastname", "email", "telephone"]);
-    if (!ok) return;
+    if (!ok) {
+      // ✅ TOAST (validation fail)
+      toast({
+        title: "Please fix the errors",
+        description: "Check the highlighted fields to continue.",
+        variant: "destructive",
+        position: "top-right",
+      });
+      return;
+    }
 
     if (affiliateId && Number(affiliateId) > 0) {
       const payload = {
@@ -433,12 +471,29 @@ export default function RegisterWizardForm({
 
       const { res, data } = await postRegister(payload);
       if (!res.ok) {
-        setServerErr(data?.message || "Step 1 update failed. Please try again.");
+        const msg = data?.message || "Step 1 update failed. Please try again.";
+        setServerErr(msg);
+
+        // ✅ TOAST
+        toast({
+          title: "Step 1 failed",
+          description: msg,
+          variant: "destructive",
+          position: "top-right",
+        });
         return;
       }
 
       setServerMsg("Step 1 updated successfully.");
       setStep(2);
+
+      // ✅ TOAST
+      toast({
+        title: "Step 1 saved",
+        description: "Personal info updated successfully.",
+        position: "top-right",
+      });
+
       return;
     }
 
@@ -452,13 +507,29 @@ export default function RegisterWizardForm({
 
     const { res, data } = await postRegister(payload);
     if (!res.ok || !data?.affiliate_id) {
-      setServerErr(data?.message || "Step 1 failed. Please try again.");
+      const msg = data?.message || "Step 1 failed. Please try again.";
+      setServerErr(msg);
+
+      // ✅ TOAST
+      toast({
+        title: "Step 1 failed",
+        description: msg,
+        variant: "destructive",
+        position: "top-right",
+      });
       return;
     }
 
     saveAffiliateId(data.affiliate_id);
     setServerMsg("Step 1 saved successfully.");
     setStep(2);
+
+    // ✅ TOAST
+    toast({
+      title: "Step 1 saved",
+      description: `Affiliate ID created: ${data.affiliate_id}`,
+      position: "top-right",
+    });
   }
 
   async function onNextStep2() {
@@ -466,13 +537,30 @@ export default function RegisterWizardForm({
     setServerErr(null);
 
     if (!affiliateId) {
-      setServerErr("Affiliate ID missing. Please complete Step 1 again.");
+      const msg = "Affiliate ID missing. Please complete Step 1 again.";
+      setServerErr(msg);
       setStep(1);
+
+      // ✅ TOAST
+      toast({
+        title: "Missing affiliate id",
+        description: msg,
+        variant: "destructive",
+        position: "top-right",
+      });
       return;
     }
 
     const ok = await trigger(["affiliate_plan_id", "business_name", "website"]);
-    if (!ok) return;
+    if (!ok) {
+      toast({
+        title: "Please fix the errors",
+        description: "Check the highlighted fields to continue.",
+        variant: "destructive",
+        position: "top-right",
+      });
+      return;
+    }
 
     const plan = getSelectedPlanInfo();
 
@@ -530,12 +618,28 @@ export default function RegisterWizardForm({
 
     const { res, data } = await postRegister(payload);
     if (!res.ok) {
-      setServerErr(data?.message || "Step 2 failed. Please try again.");
+      const msg = data?.message || "Step 2 failed. Please try again.";
+      setServerErr(msg);
+
+      // ✅ TOAST
+      toast({
+        title: "Step 2 failed",
+        description: msg,
+        variant: "destructive",
+        position: "top-right",
+      });
       return;
     }
 
     setServerMsg("Step 2 saved successfully.");
     setStep(3);
+
+    // ✅ TOAST
+    toast({
+      title: "Step 2 saved",
+      description: "Plan & domain info saved.",
+      position: "top-right",
+    });
   }
 
   async function onFinishStep3() {
@@ -543,8 +647,17 @@ export default function RegisterWizardForm({
     setServerErr(null);
 
     if (!affiliateId) {
-      setServerErr("Affiliate ID missing. Please complete Step 1 again.");
+      const msg = "Affiliate ID missing. Please complete Step 1 again.";
+      setServerErr(msg);
       setStep(1);
+
+      // ✅ TOAST
+      toast({
+        title: "Missing affiliate id",
+        description: msg,
+        variant: "destructive",
+        position: "top-right",
+      });
       return;
     }
 
@@ -558,7 +671,16 @@ export default function RegisterWizardForm({
       "confirm",
       "agree_terms",
     ]);
-    if (!ok) return;
+
+    if (!ok) {
+      toast({
+        title: "Please fix the errors",
+        description: "Check the highlighted fields to finish registration.",
+        variant: "destructive",
+        position: "top-right",
+      });
+      return;
+    }
 
     const payload = {
       step: 3,
@@ -578,19 +700,31 @@ export default function RegisterWizardForm({
 
     const { res, data } = await postRegister(payload);
     if (!res.ok) {
-      setServerErr(data?.message || "Step 3 failed. Please try again.");
+      const msg = data?.message || "Step 3 failed. Please try again.";
+      setServerErr(msg);
+
+      // ✅ TOAST
+      toast({
+        title: "Step 3 failed",
+        description: msg,
+        variant: "destructive",
+        position: "top-right",
+      });
       return;
     }
 
     setServerMsg("Registration completed. Redirecting to payment...");
 
-    // stop autosave first (so it can't write again)
-    setPersistEnabled(false);
+    // ✅ TOAST
+    toast({
+      title: "Registration completed",
+      description: "Redirecting to payment...",
+      position: "top-right",
+    });
 
-    // clear storage keys
+    setPersistEnabled(false);
     clearWizard();
 
-    // also reset state (optional but good)
     setAffiliateId(null);
     setStep(1);
 

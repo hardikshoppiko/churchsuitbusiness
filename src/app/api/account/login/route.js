@@ -52,9 +52,12 @@ export async function POST(req) {
 
     // console.log(`Affiliate Data: ${JSON.stringify(affiliateData)}`);
 
+    const affiliateUserName = user.username || user.email || "";
+
     await createSession({
       affiliate_user_id: Number(user.affiliate_user_id),
       affiliate_id: Number(user.affiliate_id),
+      username: String(affiliateUserName || ""),
       email: String(user.email || ""),
       telephone: String(user.telephone || ""),
       firstname: String(user.firstname || ""),

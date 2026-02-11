@@ -16,6 +16,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { useToast } from "@/components/ui/use-toast";
+
 function WarningBar({ show }) {
   if (!show) return null;
   return (
@@ -47,6 +49,8 @@ export default function ProfileForm({ initialData }) {
   const [serverMsg, setServerMsg] = useState(null);
   const [serverErr, setServerErr] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const { toast } = useToast();
 
   const affiliate = initialData?.affiliate || null;
 
@@ -129,15 +133,36 @@ export default function ProfileForm({ initialData }) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data?.ok) {
-        setServerErr(data?.message || "Failed to update profile.");
+        const msg = data?.message || "Failed to update profile.";
+        setServerErr(msg);
+
+        toast({
+          title: "Error",
+          description: msg,
+          variant: "destructive",
+        });
+
         return;
       }
 
-      setServerMsg(data?.message || "Profile updated successfully.");
-      // refresh saved values from DB (and clear password)
+      const msg = data?.message || "Profile updated successfully.";
+      setServerMsg(msg);
+
+      toast({
+        title: "Profile updated",
+        description: msg
+      });
+
       await reloadProfile();
-    } catch (e) {
-      setServerErr("Failed to update profile. Please try again.");
+    } catch {
+      const msg = "Failed to update profile. Please try again.";
+      setServerErr(msg);
+
+      toast({
+        title: "Error",
+        description: msg,
+        variant: "destructive"
+      });
     }
   }
 
@@ -169,7 +194,7 @@ export default function ProfileForm({ initialData }) {
       <CardContent className="space-y-6">
         <WarningBar show={hasAnyError} />
 
-        {serverErr ? (
+        {/* {serverErr ? (
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
             {serverErr}
           </div>
@@ -179,7 +204,7 @@ export default function ProfileForm({ initialData }) {
           <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
             {serverMsg}
           </div>
-        ) : null}
+        ) : null} */}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 

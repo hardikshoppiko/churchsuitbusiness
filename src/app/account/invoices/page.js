@@ -77,7 +77,7 @@ function ActionBtn({ disabled, href, label, tooltip, download, icon }) {
   const hasIcon = !!icon;
 
   const content = hasIcon ? (
-    <span className="inline-flex items-center gap-2">
+    <span className={`inline-flex items-center ${label ? "gap-2" : ""}`}>
       <i className={`fa fa-${icon}`} aria-hidden="true" />
       {/* show text only on md+ */}
       <span className="hidden md:inline">{label}</span>
@@ -151,13 +151,13 @@ function InvoiceCard({ inv }) {
       </div>
 
       <div className="mt-4 flex gap-2">
-        <ActionBtn
+        {/* <ActionBtn
           href={hostedUrl}
           disabled={!hostedUrl}
           label="View"
           icon="eye"
           tooltip={hostedUrl ? "Open invoice" : "Hosted invoice link not available"}
-        />
+        /> */}
 
         <ActionBtn
           href={pdfUrl}
@@ -270,19 +270,19 @@ export default async function InvoicesPage() {
 
                               <TableCell className="text-center">
                                 <div className="flex flex-wrap items-center justify-center gap-2">
-                                  <ActionBtn
+                                  {/* <ActionBtn
                                     href={hostedUrl}
                                     disabled={!hostedUrl}
                                     label="View"
                                     icon="eye"
                                     tooltip={hostedUrl ? "Open invoice" : "Hosted invoice link not available"}
-                                  />
+                                  /> */}
 
                                   <ActionBtn
                                     href={pdfUrl}
                                     download
                                     disabled={!pdfUrl}
-                                    label="Download PDF"
+                                    label=""
                                     icon="download"
                                     tooltip={pdfUrl ? "Download invoice PDF" : "Invoice PDF not available"}
                                   />

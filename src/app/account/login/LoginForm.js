@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 
 function isValidLogin(v) {
   const s = String(v || "").trim();
@@ -29,6 +30,8 @@ export default function LoginForm() {
   const [serverErr, setServerErr] = useState("");
   const [serverMsg, setServerMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { toast } = useToast();
 
   const {
     register,
@@ -63,14 +66,35 @@ export default function LoginForm() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setServerErr(data?.message || "Login failed. Please try again.");
+        const msg = data?.message || "Login failed. Please try again.";
+        setServerErr(msg);
+
+        toast({
+          title: "Login failed",
+          description: msg,
+          variant: "destructive"
+        });
+
         return;
       }
 
       setServerMsg("Login successful. Redirecting...");
+
+      toast({
+        title: "Login successful",
+        description: "Redirecting to dashboard..."
+      });
+
       router.push(redirect);
     } catch {
-      setServerErr("Login failed. Please try again.");
+      const msg = "Login failed. Please try again.";
+      setServerErr(msg);
+
+      toast({
+        title: "Login failed",
+        description: msg,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -89,7 +113,7 @@ export default function LoginForm() {
               </p>
             </div>
 
-            {serverErr ? (
+            {/* {serverErr ? (
               <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <div className="font-semibold">Login failed</div>
                 <div>{serverErr}</div>
@@ -101,7 +125,7 @@ export default function LoginForm() {
                 <div className="font-semibold">Success</div>
                 <div>{serverMsg}</div>
               </div>
-            ) : null}
+            ) : null} */}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
@@ -149,13 +173,13 @@ export default function LoginForm() {
                 ) : null}
               </div>
 
-              <div className="flex items-center justify-between gap-3">
+              {/* <div className="flex items-center justify-between gap-3">
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <input type="checkbox" className="h-4 w-4 rounded border-input me-1" {...register("remember")} />
                   Remember me
                 </label>
                 <span className="text-xs text-muted-foreground">Secure login</span>
-              </div>
+              </div> */}
 
               <Button className="w-full mb-3" type="submit" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}

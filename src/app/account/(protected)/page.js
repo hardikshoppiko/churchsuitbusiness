@@ -34,21 +34,23 @@ function InfoRow({ label, value }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-sm font-semibold text-foreground text-right break-all">{value || "—"}</div>
+      <div className="text-sm font-semibold text-foreground text-right break-all">
+        {value || "—"}
+      </div>
     </div>
   );
 }
 
 function QuickLink({ href, title, desc, icon }) {
   return (
-    <Link href={href} className="block text-decoration-none">
+    <Link href={href} className="block no-underline text-decoration-none">
       <div className="group rounded-2xl border bg-background p-4 transition hover:bg-muted/30">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border bg-muted/30 text-muted-foreground">
             <i className={`fa fa-${icon}`} aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold group-hover:underline text-decoration-none">{title}</div>
+            <div className="text-sm font-semibold">{title}</div>
             <div className="mt-1 text-xs text-muted-foreground">{desc}</div>
           </div>
         </div>
@@ -78,6 +80,18 @@ export default async function AccountHome() {
   const planStatus =
     left == null ? "—" : left < 0 ? "Expired" : left === 0 ? "Ends today" : `${left} days left`;
 
+  // Admin URL (yours)
+  let adminUrl =
+    website && affiliateId
+      ? `${website}${process.env.ADMIN_LOGIN_ROUTE}&token=${process.env.ADMIN_LOGIN_TOKEN}&affiliate_id=${affiliateId}&user_id=${session?.affiliate_user_id || 0}&username=${encodeURIComponent(session?.username || "")}`
+      : "";
+
+  if (process.env.NODE_ENV === "development") {
+    adminUrl = process.env.DEVELOPMENT_LOGIN_URL;
+  }
+
+  const hasAdmin = !!adminUrl;
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
       {/* Header */}
@@ -103,30 +117,67 @@ export default async function AccountHome() {
                   Affiliate ID: <span className="font-semibold text-foreground">{affiliateId}</span>
                 </span>
               ) : null}
+
               {email ? (
                 <span className="rounded-full border bg-muted/30 px-3 py-1">
                   Email: <span className="font-semibold text-foreground">{email}</span>
                 </span>
               ) : null}
+
               {websiteRaw ? (
                 <span className="rounded-full border bg-muted/30 px-3 py-1">
-                  Website:{" "}
-                  <span className="font-semibold text-foreground">
-                    {websiteRaw}
-                  </span>
+                  Website: <span className="font-semibold text-foreground">{websiteRaw}</span>
                 </span>
               ) : null}
+
+              {/* ✅ Admin chip */}
+              {/* {hasAdmin ? (
+                <a
+                  href={adminUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border bg-muted/30 px-3 py-1 hover:bg-muted/50 inline-flex items-center gap-2"
+                >
+                  <span>Admin:</span>
+                  <span className="font-semibold text-foreground">Open Panel</span>
+                </a>
+              ) : null} */}
             </div>
           </div>
 
-          {/* No payment link */}
+          {/* Actions */}
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Link href="/account/invoices" className="inline-flex text-decoration-none text-white">
+            <Link href="/account/invoices" className="inline-flex no-underline text-decoration-none text-white">
               <Button className="w-full sm:w-auto">Invoices</Button>
             </Link>
 
+            {/* ✅ Admin button */}
+            {hasAdmin ? (
+              <a
+                href={adminUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-full sm:w-auto text-decoration-none text-dark"
+              >
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <i className="fa fa-user-shield mr-2" aria-hidden="true" />
+                  Admin Panel
+                </Button>
+              </a>
+            ) : (
+              <Button variant="outline" className="w-full sm:w-auto" disabled>
+                <i className="fa fa-user-shield mr-2" aria-hidden="true" />
+                Admin Panel
+              </Button>
+            )}
+
             {website ? (
-              <a href={website} target="_blank" rel="noreferrer" className="inline-flex text-decoration-none text-dark w-full sm:w-auto">
+              <a
+                href={website}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-full sm:w-auto no-underline text-decoration-none text-dark"
+              >
                 <Button variant="outline" className="w-full sm:w-auto">
                   <i className="fa fa-globe mr-2" aria-hidden="true" />
                   Open Website
@@ -164,30 +215,10 @@ export default async function AccountHome() {
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <QuickLink
-                href="/account/invoices"
-                title="Invoices"
-                desc="View & download Stripe invoices"
-                icon="file-invoice"
-              />
-              <QuickLink
-                href="/account/profile"
-                title="Profile"
-                desc="Update your personal details"
-                icon="user"
-              />
-              <QuickLink
-                href="/account/settings"
-                title="Settings"
-                desc="Manage preferences and security"
-                icon="gear"
-              />
-              <QuickLink
-                href="/contact"
-                title="Support"
-                desc="Contact support for help"
-                icon="life-ring"
-              />
+              <QuickLink href="/account/invoices" title="Invoices" desc="View & download Stripe invoices" icon="file-invoice" />
+              <QuickLink href="/account/profile" title="Profile" desc="Update your personal details" icon="user" />
+              <QuickLink href="/account/credit-cards" title="Credit Cards" desc="Manage your cards details" icon="credit-card" />
+              <QuickLink href="/contact" title="Support" desc="Contact support for help" icon="life-ring" />
             </div>
           </div>
 
@@ -245,19 +276,36 @@ export default async function AccountHome() {
                   : `Your plan will end in ${left} day(s).`}
               </div>
 
-              {website ? (
-                <a href={website} target="_blank" rel="noreferrer" className="inline-flex w-full text-decoration-none text-dark">
-                  <Button variant="outline" className="w-full">
+              <div className="mt-3 grid gap-2">
+                {/* ✅ Admin button also here */}
+                {hasAdmin ? (
+                  <a href={adminUrl} target="_blank" rel="noreferrer" className="inline-flex w-full no-underline text-decoration-none text-dark">
+                    <Button variant="outline" className="w-full">
+                      <i className="fa fa-user-shield mr-2" aria-hidden="true" />
+                      Open Admin Panel
+                    </Button>
+                  </a>
+                ) : (
+                  <Button variant="outline" className="w-full text-decoration-none text-dark" disabled>
+                    <i className="fa fa-user-shield mr-2" aria-hidden="true" />
+                    Open Admin Panel
+                  </Button>
+                )}
+
+                {website ? (
+                  <a href={website} target="_blank" rel="noreferrer" className="inline-flex w-full no-underline text-decoration-none text-dark">
+                    <Button variant="outline" className="w-full">
+                      <i className="fa fa-globe mr-2" aria-hidden="true" />
+                      Open Website
+                    </Button>
+                  </a>
+                ) : (
+                  <Button variant="outline" className="w-full text-decoration-none text-dark" disabled>
                     <i className="fa fa-globe mr-2" aria-hidden="true" />
                     Open Website
                   </Button>
-                </a>
-              ) : (
-                <Button variant="outline" className="w-full" disabled>
-                  <i className="fa fa-globe mr-2" aria-hidden="true" />
-                  Open Website
-                </Button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>

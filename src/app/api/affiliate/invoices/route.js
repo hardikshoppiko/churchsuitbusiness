@@ -1,6 +1,7 @@
+import Stripe from "stripe";
+
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 

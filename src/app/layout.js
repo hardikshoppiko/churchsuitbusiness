@@ -8,14 +8,18 @@ import Footer from "./footer";
 import GlobalModal from "@/components/GlobalModal";
 
 import { getSiteSettings, pickPublicSettings } from "@/lib/settings";
-
 import MaintenancePage from "./maintenance/page";
+
+// ✅ add this
+import { ToastProvider } from "@/components/ui/use-toast";
 
 export default async function RootLayout({ children }) {
   // FULL settings (server-only)
   const settingsData = await getSiteSettings(0);
 
-  const maintenanceEnabled = settingsData?.config?.config_maintenance === "1" || settingsData?.config?.config_maintenance === "true";
+  const maintenanceEnabled =
+    settingsData?.config?.config_maintenance === "1" ||
+    settingsData?.config?.config_maintenance === "true";
 
   // ✅ only safe subset goes to client
   const publicSettings = pickPublicSettings(settingsData);
@@ -24,7 +28,7 @@ export default async function RootLayout({ children }) {
     settings: {
       loaded: true,
       store_id: 0,
-      data: publicSettings, // ✅ NOT full settingsData
+      data: publicSettings,
     },
   };
 
@@ -36,7 +40,10 @@ export default async function RootLayout({ children }) {
           <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css" />
         </head>
         <body suppressHydrationWarning>
-          <MaintenancePage />
+          {/* ✅ still allow toasts if you ever use them in maintenance page */}
+          <ToastProvider>
+            <MaintenancePage />
+          </ToastProvider>
         </body>
       </html>
     );
@@ -59,12 +66,15 @@ export default async function RootLayout({ children }) {
       </head>
 
       <body className="d-flex flex-column min-vh-100" suppressHydrationWarning>
-        <ReduxProvider preloadedState={preloadedState}>
-          <Header />
-          <main className="flex-grow-1">{children}</main>
-          <Footer />
-          <GlobalModal />
-        </ReduxProvider>
+        {/* ✅ Toast provider must be inside body */}
+        <ToastProvider>
+          <ReduxProvider preloadedState={preloadedState}>
+            <Header />
+            <main className="flex-grow-1">{children}</main>
+            <Footer />
+            <GlobalModal />
+          </ReduxProvider>
+        </ToastProvider>
 
         <Script src="/assets/bootstrap/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
       </body>
