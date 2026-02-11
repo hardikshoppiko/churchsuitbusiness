@@ -196,7 +196,7 @@ export async function sendForgotPasswordEmail({ to, name, storeName, resetUrl, i
   </div>
   `;
 
-  console.log(html);
+  // console.log(html);
 
   const text = `
 ${storeName || "Affiliate Program"} - Password reset request

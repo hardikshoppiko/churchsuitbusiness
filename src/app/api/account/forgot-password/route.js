@@ -17,7 +17,7 @@ export async function POST(req) {
   try {
     const body = await req.json().catch(() => ({}));
 
-    console.log("Forgot password request body:", body);
+    // console.log("Forgot password request body:", body);
 
     const login = normalizeLogin(body?.email || body?.username || body?.login);
 
