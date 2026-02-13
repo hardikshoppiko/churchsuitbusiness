@@ -92,7 +92,10 @@ async function getPaymentStage(affiliateId) {
 
 async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId }) {
   const affId = Number(affiliate_id);
-  if (!affId) return null;
+
+  if (!affId) {
+    return null;
+  }
 
   const invoice_number = invoice.number || invoice.id || "";
   const payment_charge_id = invoice.charge || invoice.payment_intent || invoice.id || "";
@@ -100,32 +103,69 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
   const amount = dollarsFromCents(invoice.amount_paid || 0);
   const payment_status = 1;
 
-  // ✅ serialize FULL Stripe invoice
+  // serialize FULL Stripe invoice
   const descriptionSerialized = serialize(invoice);
 
-  // // ✅ idempotency: avoid duplicate inserts on webhook retries
-  // const exists = await hasPaymentRowAlready(affId, invoice_number, payment_charge_id);
-
-  // ✅ Paid = activate + set dates
-  // Start_date = NOW, End_date = NOW+30 days (your requirement)
-  await db.query(`UPDATE affiliate SET affiliate_status_id=2, approved=1, status=1, stripe_customer_id='${dbEscape(String(customerId || ""))}', recurring_billing_id='${dbEscape(String(subscriptionId || ""))}', end_date=DATE_ADD(NOW(), INTERVAL 30 DAY), date_modified=NOW() WHERE affiliate_id=${affId}`);
-
-  // Activate affiliate_user too
-  await db.query(`UPDATE affiliate_user SET status=1, date_modified=NOW() WHERE affiliate_id=${affId}`);
-
-  await db.query(`INSERT INTO affiliate_payment SET affiliate_id=${affId}, payment_charge_id='${dbEscape(String(payment_charge_id))}', invoice_number='${dbEscape(String(invoice_number))}', description='${dbEscape(String(descriptionSerialized))}', amount='${dbEscape(String(amount))}', start_date=NOW(), end_date=DATE_ADD(NOW(), INTERVAL 30 DAY), payment_status=${payment_status}, date_added=NOW()`);
-
-  // ✅ Determine payment stage
+  // Determine payment stage BEFORE deciding which update query to run
+  // your helper returns: "first" or "renewal"
   const paymentStage = await getPaymentStage(affId);
 
-  // console.log(`Payment Stage: ${paymentStage}`);
+  // FIRST PAYMENT: activate everything
+  if (paymentStage === "first") {
+    await db.query(`
+      UPDATE affiliate
+      SET
+        affiliate_status_id=2,
+        approved=1,
+        status=1,
+        stripe_customer_id='${dbEscape(String(customerId || ""))}',
+        recurring_billing_id='${dbEscape(String(subscriptionId || ""))}',
+        end_date=DATE_ADD(NOW(), INTERVAL 30 DAY),
+        date_modified=NOW()
+      WHERE affiliate_id=${affId}
+    `);
 
-  const [rows] = await db.query(`SELECT email, firstname, lastname FROM affiliate WHERE affiliate_id=${affId} LIMIT 1`);
+    // Activate affiliate_user only on first payment
+    await db.query(`
+      UPDATE affiliate_user
+      SET status=1, date_modified=NOW()
+      WHERE affiliate_id=${affId}
+    `);
+  } else {
+    // RENEWAL: only extend end_date (do not touch affiliate_user)
+    await db.query(`
+      UPDATE affiliate
+      SET
+        end_date=DATE_ADD(NOW(), INTERVAL 30 DAY),
+        date_modified=NOW()
+      WHERE affiliate_id=${affId}
+    `);
+  }
+
+  // Insert payment row (keep as-is for both first + renewal)
+  await db.query(`
+    INSERT INTO affiliate_payment
+    SET
+      affiliate_id=${affId},
+      payment_charge_id='${dbEscape(String(payment_charge_id))}',
+      invoice_number='${dbEscape(String(invoice_number))}',
+      description='${dbEscape(String(descriptionSerialized))}',
+      amount='${dbEscape(String(amount))}',
+      start_date=NOW(),
+      end_date=DATE_ADD(NOW(), INTERVAL 30 DAY),
+      payment_status=${payment_status},
+      date_added=NOW()
+  `);
+
+  // Email notification logic (unchanged, but now uses paymentStage already computed)
+  const [rows] = await db.query(`
+    SELECT email, firstname, lastname
+    FROM affiliate
+    WHERE affiliate_id=${affId}
+    LIMIT 1
+  `);
 
   const aff = rows?.[0];
-
-  // console.log(`Affiliate: ${aff}`);
-
   const name = `${aff?.firstname || ""} ${aff?.lastname || ""}`.trim();
 
   if (aff?.email) {
@@ -146,7 +186,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
     }
   }
 
-  return { affId, invoice_number, payment_charge_id, amount };
+  return { affId, invoice_number, payment_charge_id, amount, paymentStage };
 }
 
 async function markFailedAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId }) {
