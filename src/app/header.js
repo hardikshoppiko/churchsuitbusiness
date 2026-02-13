@@ -33,8 +33,7 @@ export default function Header() {
     settings?.config?.config_store ||
     "MyAffiliate";
 
-  const logo =
-    "https://weshipfashions.com/image/catalog/logo/weshipfashions-logo.png";
+  const logo = "/assets/images/church-suits-business.png";
 
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
@@ -81,9 +80,7 @@ export default function Header() {
 
   const homeHref = loggedIn ? "/account" : "/";
 
-  // console.log("NODE_ENV:", process.env.NODE_ENV);
-
-  console.log(process.env.STORE_NAME);
+  const storeNameForTitle = process.env.NEXT_PUBLIC_STORE_NAME || siteName;
 
   return (
     <header className="sticky-top bg-white border-bottom">
@@ -93,10 +90,10 @@ export default function Header() {
           <Link href={homeHref} className="navbar-brand d-flex align-items-center gap-2">
             <img
               src={logo}
-              alt={siteName}
+              alt={storeNameForTitle}
               style={{ height: 34, width: "auto" }}
             />
-            <span className="d-none d-md-inline fw-bold">{siteName}</span>
+            <span className="d-none d-md-inline fw-bold">{storeNameForTitle}</span>
           </Link>
 
           {/* Right Actions */}
@@ -190,7 +187,7 @@ export default function Header() {
                         "
                       >
                         <i className="fa-solid fa-credit-card" />
-                        Credit Cards
+                        Payment Method
                       </Link>
                     </DropdownMenuItem>
 
@@ -222,7 +219,7 @@ export default function Header() {
 
                 <SheetContent side="right" className="w-[320px] sm:w-[360px]">
                   <SheetHeader>
-                    <SheetTitle>{siteName}</SheetTitle>
+                    <SheetTitle>{storeNameForTitle}</SheetTitle>
                   </SheetHeader>
 
                   <div className="mt-4">
@@ -258,7 +255,7 @@ export default function Header() {
 
                           <Link href="/account/credit-cards" onClick={() => setSheetOpen(false)}>
                             <Button variant="outline" className="w-100 justify-content-start">
-                              Credit Cards
+                              Payment Method
                             </Button>
                           </Link>
 

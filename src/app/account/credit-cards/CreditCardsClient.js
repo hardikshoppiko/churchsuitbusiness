@@ -339,7 +339,7 @@ export default function CreditCardsClient() {
       <div className="mb-5 rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Credit Cards</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Payment Method</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Add a new card and set your default card for billing.
             </p>

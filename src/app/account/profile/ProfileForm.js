@@ -100,7 +100,7 @@ export default function ProfileForm({ initialData }) {
   async function reloadProfile() {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.APP_URL}/api/affiliate/profile`, { cache: "no-store" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/affiliate/profile`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (data?.ok && data?.affiliate) {
         reset({

@@ -12,7 +12,7 @@ async function fetchProfile() {
 
   const cookieHeader = h.get("cookie") || "";
 
-  const res = await fetch(`${process.env.APP_URL}/api/affiliate/profile`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/affiliate/profile`, {
     method: "GET",
     cache: "no-store",
     headers: { cookie: cookieHeader }

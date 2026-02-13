@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -25,13 +25,56 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const redirect = useMemo(() => searchParams.get("redirect") || "/account", [searchParams]);
+  const redirect = useMemo(
+    () => searchParams.get("redirect") || "/account",
+    [searchParams]
+  );
 
   const [serverErr, setServerErr] = useState("");
   const [serverMsg, setServerMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
+
+  // ✅ read optional success params from URL (for reset-password success redirect)
+  const urlSuccess = useMemo(() => String(searchParams.get("success") || ""), [searchParams]);
+  const urlMsg = useMemo(() => String(searchParams.get("msg") || ""), [searchParams]);
+
+  // ✅ ensure it shows only once
+  const toastShownRef = useRef(false);
+
+  useEffect(() => {
+    if (toastShownRef.current) return;
+
+    const success = urlSuccess.trim();
+    const msg = urlMsg.trim();
+
+    if (!success && !msg) return;
+
+    toastShownRef.current = true;
+
+    if (success) {
+      toast({
+        title: "Success",
+        description: msg || "Done successfully.",
+      });
+    } else if (msg) {
+      toast({
+        title: "Notice",
+        description: msg,
+        variant: "destructive",
+      });
+    }
+
+    // ✅ remove params so toast doesn't repeat on refresh
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.delete("success");
+    sp.delete("msg");
+
+    const newQuery = sp.toString();
+    router.replace(newQuery ? `?${newQuery}` : "?", { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlSuccess, urlMsg]);
 
   const {
     register,
@@ -72,7 +115,7 @@ export default function LoginForm() {
         toast({
           title: "Login failed",
           description: msg,
-          variant: "destructive"
+          variant: "destructive",
         });
 
         return;
@@ -82,7 +125,7 @@ export default function LoginForm() {
 
       toast({
         title: "Login successful",
-        description: "Redirecting to dashboard..."
+        description: "Redirecting to dashboard...",
       });
 
       router.push(redirect);
@@ -93,7 +136,7 @@ export default function LoginForm() {
       toast({
         title: "Login failed",
         description: msg,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -112,20 +155,6 @@ export default function LoginForm() {
                 Login to manage your affiliate store and subscription.
               </p>
             </div>
-
-            {/* {serverErr ? (
-              <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <div className="font-semibold">Login failed</div>
-                <div>{serverErr}</div>
-              </div>
-            ) : null}
-
-            {serverMsg ? (
-              <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                <div className="font-semibold">Success</div>
-                <div>{serverMsg}</div>
-              </div>
-            ) : null} */}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
@@ -173,14 +202,6 @@ export default function LoginForm() {
                 ) : null}
               </div>
 
-              {/* <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <input type="checkbox" className="h-4 w-4 rounded border-input me-1" {...register("remember")} />
-                  Remember me
-                </label>
-                <span className="text-xs text-muted-foreground">Secure login</span>
-              </div> */}
-
               <Button className="w-full mb-3" type="submit" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
@@ -192,24 +213,23 @@ export default function LoginForm() {
               </div>
 
               <Button variant="outline" className="w-full" asChild>
-                <Link href="/register" className="text-decoration-none text-dark">Create an account</Link>
+                <Link href="/register" className="text-decoration-none text-dark">
+                  Create an account
+                </Link>
               </Button>
             </form>
           </div>
         </div>
 
-        {/* RIGHT (THIS IS NOW A TRUE CARD-HALF PANEL) */}
+        {/* RIGHT */}
         <div className="relative hidden md:flex">
-          {/* background fills the entire half */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#0B2B7A] via-[#225ED7] to-[#4F8BFF]" />
 
-          {/* soft glows */}
           <div className="absolute inset-0 opacity-40">
             <div className="absolute -top-28 -right-28 h-96 w-96 rounded-full bg-white/20 blur-3xl" />
             <div className="absolute -bottom-28 -left-28 h-96 w-96 rounded-full bg-white/15 blur-3xl" />
           </div>
 
-          {/* content (padding only here, NOT on container) */}
           <div className="relative z-10 flex w-full flex-col justify-between p-10 text-white">
             <div className="space-y-4">
               <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">

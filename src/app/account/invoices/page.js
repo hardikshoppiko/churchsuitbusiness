@@ -63,7 +63,7 @@ async function fetchInvoices() {
   const h = await headers();
   const cookieHeader = h.get("cookie") || "";
 
-  const res = await fetch(`${process.env.APP_URL}/api/affiliate/invoices`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/affiliate/invoices`, {
     method: "GET",
     cache: "no-store",
     headers: { cookie: cookieHeader },

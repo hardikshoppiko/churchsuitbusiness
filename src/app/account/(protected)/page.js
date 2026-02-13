@@ -217,7 +217,7 @@ export default async function AccountHome() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <QuickLink href="/account/invoices" title="Invoices" desc="View & download Stripe invoices" icon="file-invoice" />
               <QuickLink href="/account/profile" title="Profile" desc="Update your personal details" icon="user" />
-              <QuickLink href="/account/credit-cards" title="Credit Cards" desc="Manage your cards details" icon="credit-card" />
+              <QuickLink href="/account/credit-cards" title="Payment Method" desc="Manage payment method details" icon="credit-card" />
               <QuickLink href="/contact" title="Support" desc="Contact support for help" icon="life-ring" />
             </div>
           </div>

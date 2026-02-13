@@ -108,7 +108,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
 
   // ✅ Paid = activate + set dates
   // Start_date = NOW, End_date = NOW+30 days (your requirement)
-  await db.query(`UPDATE affiliate SET affiliate_status_id=2, approved=1, status=1, affiliate_status_id=2, stripe_customer_id='${dbEscape(String(customerId || ""))}', recurring_billing_id='${dbEscape(String(subscriptionId || ""))}', end_date=DATE_ADD(NOW(), INTERVAL 30 DAY), date_modified=NOW() WHERE affiliate_id=${affId}`);
+  await db.query(`UPDATE affiliate SET affiliate_status_id=2, approved=1, status=1, stripe_customer_id='${dbEscape(String(customerId || ""))}', recurring_billing_id='${dbEscape(String(subscriptionId || ""))}', end_date=DATE_ADD(NOW(), INTERVAL 30 DAY), date_modified=NOW() WHERE affiliate_id=${affId}`);
 
   // Activate affiliate_user too
   await db.query(`UPDATE affiliate_user SET status=1, date_modified=NOW() WHERE affiliate_id=${affId}`);
@@ -167,19 +167,14 @@ async function markFailedAndInsertPayment({ affiliate_id, invoice, subscriptionI
   // // ✅ idempotency
   // const exists = await hasPaymentRowAlready(affId, invoice_number, payment_charge_id);
 
-  // // Mark affiliate as failed (optional but useful)
-  // await db.query(`UPDATE affiliate SET payment_status='failed', stripe_customer_id='${dbEscape(String(customerId || ""))}', recurring_billing_id='${dbEscape(String(subscriptionId || ""))}', date_modified=NOW() WHERE affiliate_id=${affId}`);
+  // Mark affiliate as failed (optional but useful)
+  await db.query(`UPDATE affiliate SET affiliate_status_id=16, date_modified=NOW() WHERE affiliate_id=${affId}`);
 
   // Insert failed payment row (only once)
   await db.query(`INSERT INTO affiliate_payment SET affiliate_id=${affId}, payment_charge_id='', invoice_number='', description='Payment Failed!', amount='', start_date='0000-00-00 00:00:00', end_date='0000-00-00 00:00:00', payment_status=${payment_status}, date_added=NOW()`);
 
   // Send email
-  const [rows] = await db.query(`
-    SELECT email, firstname, lastname
-    FROM affiliate
-    WHERE affiliate_id=${affId}
-    LIMIT 1
-  `);
+  const [rows] = await db.query(`SELECT email, firstname, lastname FROM affiliate WHERE affiliate_id=${affId} LIMIT 1`);
 
   const aff = rows?.[0];
   if (aff?.email) {
