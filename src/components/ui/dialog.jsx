@@ -36,7 +36,7 @@ const DialogOverlay = React.forwardRef(function DialogOverlay(
 });
 
 const DialogContent = React.forwardRef(function DialogContent(
-  { className, children, ...props },
+  { className, children, showClose = true, ...props },
   ref
 ) {
   return (
@@ -51,6 +51,7 @@ const DialogContent = React.forwardRef(function DialogContent(
 
           // Desktop center
           "left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border p-6",
+          "max-h-[90vh] overflow-y-auto",
 
           // ✅ Mobile full-screen
           "max-sm:inset-0 max-sm:left-0 max-sm:top-0 max-sm:max-w-none",
@@ -70,9 +71,11 @@ const DialogContent = React.forwardRef(function DialogContent(
       >
         {children}
 
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:text-foreground">
-          ✕
-        </DialogPrimitive.Close>
+        {showClose ? (
+          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:text-foreground">
+            ✕
+          </DialogPrimitive.Close>
+        ) : null}
       </DialogPrimitive.Content>
     </DialogPortal>
   );
