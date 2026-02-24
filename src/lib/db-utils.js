@@ -61,6 +61,10 @@ export function isEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || "").trim());
 }
 
+export function normalizePhone(v) {
+  return String(v || "").replace(/\D/g, "").slice(0, 15);
+}
+
 export function isTenDigitPhone(v) {
   return /^\d{10}$/.test(String(v || "").trim());
 }
@@ -149,9 +153,13 @@ function parseDate(input) {
  * Format date as MM/DD/YYYY (default)
  */
 export function formatDate(input, format = "MM/DD/YYYY") {
-  const d = parseDate(input);
+  if (!input) return "";
 
-  if (!d) return "";
+  const d = input instanceof Date ? input : new Date(String(input).replace(" ", "T"));
+
+  if (isNaN(d.getTime())) {
+     return "";
+  }
 
   const map = {
     DD: String(d.getDate()).padStart(2, "0"),

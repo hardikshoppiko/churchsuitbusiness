@@ -21,6 +21,7 @@ import { db } from "@/lib/db";
 
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
 const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+const DAYS_INTERVAL = 7; // for newsletter leads, look back X days
 
 // ==========================
 // Placeholder replace
@@ -284,7 +285,7 @@ async function processCron(statusCode) {
   // ==========================
   // A) Affiliate processing (your existing logic)
   // ==========================
-  const [affiliates] = await db.query(`SELECT affiliate_id, firstname, lastname, email, telephone, date_added, affiliate_status_id, stop_automation, status, is_delete FROM affiliate WHERE affiliate_status_id=${Number(affiliate_status_id)} AND is_delete=0 ORDER BY affiliate_id DESC LIMIT 500`);
+  const [affiliates] = await db.query(`SELECT affiliate_id, firstname, lastname, email, telephone, date_added, affiliate_status_id, stop_automation, status, is_delete FROM affiliate WHERE affiliate_status_id=${Number(affiliate_status_id)} AND is_delete=0 AND date_added >= DATE_SUB(NOW(), INTERVAL ${Number(DAYS_INTERVAL)} DAY) ORDER BY affiliate_id DESC LIMIT 500`);
 
   const totals = {
     affiliates: affiliates?.length || 0,
@@ -447,7 +448,7 @@ async function processCron(statusCode) {
   // B) ✅ Newsletter leads (ONLY when cohort is "lead")
   // ==========================
   if (String(statusCode) === "lead") {
-    const [leads] = await db.query(`SELECT affiliate_newsletter_id, email, telephone, source_url, date_added FROM affiliate_newsletter WHERE is_delete=0 ORDER BY affiliate_newsletter_id DESC LIMIT 500`);
+    const [leads] = await db.query(`SELECT affiliate_newsletter_id, email, telephone, source_url, date_added FROM affiliate_newsletter WHERE is_delete=0 AND date_added >= DATE_SUB(NOW(), INTERVAL ${Number(DAYS_INTERVAL)} DAY) ORDER BY affiliate_newsletter_id DESC LIMIT 500`);
 
     totals.newsletter_leads = leads?.length || 0;
 
@@ -573,7 +574,7 @@ async function processCron(statusCode) {
             if (channel === "email") {
               totals.sentEmail++;
             }
-            
+
             if (channel === "sms") {
               totals.sentSms++;
             }
