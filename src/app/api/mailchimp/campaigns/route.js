@@ -238,9 +238,8 @@ export async function POST(req) {
 
     const action = cleanStr(body?.action || "create").toLowerCase();
 
-    console.log(body);
-    console.log(action);
-    // return false;
+    console.log(`campaign body: ${body}`);
+    console.log(`Action: ${action}`);
 
     // ==========================
     // SEND existing campaign
@@ -248,9 +247,7 @@ export async function POST(req) {
     if (isAction(action, "send")) {
       const campaign_id = cleanStr(body?.campaign_id);
 
-      if (!campaign_id) {
-        return jsonErr("campaign_id is required for send", 400);
-      }
+      if (!campaign_id) return jsonErr("campaign_id is required for send", 400);
 
       const r = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/send`, { method: "POST" });
 
@@ -266,7 +263,7 @@ export async function POST(req) {
     // ==========================
     if (isAction(action, "schedule")) {
       const campaign_id = cleanStr(body?.campaign_id);
-      const schedule_time = cleanStr(body?.schedule_time); // ISO string with timezone preferred
+      const schedule_time = cleanStr(body?.schedule_time);
 
       if (!campaign_id) {
         return jsonErr("campaign_id is required for schedule", 400);
@@ -293,37 +290,46 @@ export async function POST(req) {
     const preview_text = cleanStr(body?.preview_text);
     const template_id = body?.template_id ? Number(body.template_id) : null;
 
-    const audiencesRaw = Array.isArray(body?.audiences) ? body.audiences.join(",") : (body?.audiences || body?.list_ids || "");
+    if (!subject_line) return jsonErr("subject is required", 400);
 
-    const listIds = splitCsv(audiencesRaw);
+    // NEW: audiences is array of objects
+    const audiences = Array.isArray(body?.audiences) ? body.audiences : [];
 
-    if (!subject_line) {
-      return jsonErr("subject is required", 400);
+    if (!audiences.length) {
+      return jsonErr("audiences array is required", 400);
     }
-
-    if (!listIds.length) {
-      return jsonErr("audiences (comma separated) is required", 400);
-    }
-
-    const from_name = cleanStr(body?.from_name || process.env.MAILCHIMP_FROM_NAME || "");
-    const reply_to = cleanStr(body?.reply_to || process.env.MAILCHIMP_REPLY_TO || "");
-
-    if (!from_name) {
-      return jsonErr("from_name missing (send in body or set MAILCHIMP_FROM_NAME)", 400);
-    }
-
-    if (!reply_to) {
-      return jsonErr("reply_to missing (send in body or set MAILCHIMP_REPLY_TO)", 400);
-    }
-
-    const title = cleanStr(body?.title) || `Draft - ${subject_line}`.slice(0, 100);
 
     // optional: schedule after create
     const schedule_time = cleanStr(body?.schedule_time);
 
+    const title = cleanStr(body?.title) || `Draft - ${subject_line}`.slice(0, 100);
+
+    // env fallback (global)
+    const envFromName = cleanStr(process.env.MAILCHIMP_FROM_NAME || "");
+    const envReplyTo = cleanStr(process.env.MAILCHIMP_REPLY_TO || "");
+
     const created = [];
 
-    for (const list_id of listIds) {
+    for (const a of audiences) {
+      const list_id = cleanStr(a?.list_id);
+
+      if (!list_id) {
+        return jsonErr("audiences[].list_id is required", 400);
+      }
+
+      // audience-level from/reply (fallback chain)
+      const from_name = cleanStr(a?.from_name) || envFromName;
+      const from_email = cleanStr(a?.from_email); 
+      const reply_to = cleanStr(a?.reply_to) || from_email || envReplyTo;
+
+      if (!from_name) {
+        return jsonErr(`from_name missing for list_id ${list_id} (send audiences[].from_name or set MAILCHIMP_FROM_NAME)`, 400);
+      }
+
+      if (!reply_to) {
+        return jsonErr(`reply_to missing for list_id ${list_id} (send audiences[].reply_to or audiences[].from_email or set MAILCHIMP_REPLY_TO)`, 400);
+      }
+
       // 1) Create campaign (draft)
       const payload = {
         type: "regular",
@@ -352,38 +358,50 @@ export async function POST(req) {
 
       // 2) Attach template (content)
       if (template_id) {
-        const r2 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/content`, {
-          method: "PUT",
-          body: { template: { id: template_id } },
-        });
+        const r2 = await mailchimpFetch(
+          `/campaigns/${encodeURIComponent(campaign_id)}/content`,
+          {
+            method: "PUT",
+            body: { template: { id: template_id } },
+          }
+        );
 
         if (!r2.ok) {
-          return jsonErr(`Campaign created but failed to attach template for audience ${list_id}`, r2.status, r2.details);
+          return jsonErr(
+            `Campaign created but failed to attach template for audience ${list_id}`,
+            r2.status,
+            r2.details
+          );
         }
       }
 
       // 3) Optional: send now
       if (isAction(action, "create_send")) {
-        const r3 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/send`, {
-          method: "POST",
-        });
+        const r3 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/send`, { method: "POST" });
 
         if (!r3.ok) {
-          return jsonErr(`Campaign created but failed to send for audience ${list_id}`, r3.status, r3.details);
+          return jsonErr(
+            `Campaign created but failed to send for audience ${list_id}`,
+            r3.status,
+            r3.details
+          );
         }
       }
 
       // 4) Optional: schedule
       if (isAction(action, "create_schedule")) {
-        if (!schedule_time) return jsonErr("schedule_time required for create_schedule", 400);
+        if (!schedule_time) {
+          return jsonErr("schedule_time required for create_schedule", 400);
+        }
 
-        const r4 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/schedule`, {
-          method: "POST",
-          body: { schedule_time },
-        });
+        const r4 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/schedule`, { method: "POST", body: { schedule_time } });
 
         if (!r4.ok) {
-          return jsonErr(`Campaign created but failed to schedule for audience ${list_id}`, r4.status, r4.details);
+          return jsonErr(
+            `Campaign created but failed to schedule for audience ${list_id}`,
+            r4.status,
+            r4.details
+          );
         }
       }
 
@@ -391,6 +409,10 @@ export async function POST(req) {
         list_id,
         campaign_id,
         web_id,
+        // helpful debug fields (your new input)
+        from_email: from_email || null,
+        from_name,
+        reply_to,
         status: isAction(action, "create_send")
           ? "sending"
           : isAction(action, "create_schedule")
