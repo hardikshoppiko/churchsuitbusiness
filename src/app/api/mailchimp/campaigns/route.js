@@ -238,8 +238,10 @@ export async function POST(req) {
 
     const action = cleanStr(body?.action || "create").toLowerCase();
 
-    console.log(`campaign body: ${body}`);
+    console.log("=== CAMPAIGN BODY WITH ACTION ===");
+    console.log(JSON.stringify(body, null, 2));
     console.log(`Action: ${action}`);
+    console.log("=====================");
 
     // ==========================
     // SEND existing campaign
