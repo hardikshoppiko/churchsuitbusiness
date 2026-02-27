@@ -13,14 +13,24 @@ export async function GET() {
 
     const lists = Array.isArray(r.data?.lists) ? r.data.lists : [];
 
-    const audiences = lists.map((l) => ({
-      id: l.id,
-      name: l.name,
-      member_count: l.stats?.member_count ?? null,
-      unsubscribe_count: l.stats?.unsubscribe_count ?? null,
-      cleaned_count: l.stats?.cleaned_count ?? null,
-      created_at: l.date_created ?? null,
-    }));
+    // console.log(lists);
+
+    const audiences = lists.map((l) => {
+      const from_email = l.campaign_defaults?.from_email ?? null;
+      const reply_to_raw = l.campaign_defaults?.reply_to ?? null;
+
+      return {
+        id: l.id,
+        name: l.name,
+        member_count: l.stats?.member_count ?? null,
+        unsubscribe_count: l.stats?.unsubscribe_count ?? null,
+        cleaned_count: l.stats?.cleaned_count ?? null,
+        created_at: l.date_created ?? null,
+        from_name: l.campaign_defaults?.from_name ?? null,
+        from_email: from_email,
+        reply_to: reply_to_raw && reply_to_raw.trim() ? reply_to_raw : from_email,
+      };
+    });
 
     return jsonOK({
       audiences,

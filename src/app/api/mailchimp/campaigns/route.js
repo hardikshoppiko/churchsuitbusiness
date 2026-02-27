@@ -165,3 +165,278 @@ export async function GET(req) {
     return jsonErr(e?.message || "Server error", 500);
   }
 }
+
+
+// ==========================
+// POST: Create DRAFT campaign(s)
+// ==========================
+// Body JSON:
+// {
+//   "subject": "....",
+//   "preview_text": "....",
+//   "template_id": 600,
+//   "audiences": "dd1608dec2,ABC003"   // OR array ["dd1608dec2","ABC003"]
+//   // optional:
+//   // "title": "My Draft Campaign Title"
+//   // "from_name": "Your Brand"   (or set MAILCHIMP_FROM_NAME in env)
+//   // "reply_to": "support@domain.com" (or set MAILCHIMP_REPLY_TO in env)
+// }
+
+// ==========================
+// Below are the senario of create, sending or scheduling mailchimp template.
+// ==========================
+// A) Create draft only
+// {
+//   "action": "create",
+//   "subject": "Hello",
+//   "preview_text": "Preview",
+//   "template_id": 600,
+//   "audiences": "dd1608dec2"
+// }
+
+// B) Create + send now
+// {
+//   "action": "create_send",
+//   "subject": "Hello",
+//   "preview_text": "Preview",
+//   "template_id": 600,
+//   "audiences": "dd1608dec2"
+// }
+
+// C) Send existing campaign
+// {
+//   "action": "send",
+//   "campaign_id": "a1b2c3d4"
+// }
+
+// D) Schedule existing campaign
+// {
+//   "action": "schedule",
+//   "campaign_id": "a1b2c3d4",
+//   "schedule_time": "2026-02-26T18:30:00+05:30"
+// }
+
+
+function splitCsv(v = "") {
+  return String(v || "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function cleanStr(v) {
+  return String(v ?? "").trim();
+}
+
+function isAction(v, name) {
+  return cleanStr(v).toLowerCase() === name;
+}
+
+export async function POST(req) {
+  try {
+    const body = await req.json().catch(() => ({}));
+
+    const action = cleanStr(body?.action || "create").toLowerCase();
+
+    console.log(body);
+    console.log(action);
+    // return false;
+
+    // ==========================
+    // SEND existing campaign
+    // ==========================
+    if (isAction(action, "send")) {
+      const campaign_id = cleanStr(body?.campaign_id);
+
+      if (!campaign_id) {
+        return jsonErr("campaign_id is required for send", 400);
+      }
+
+      const r = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/send`, { method: "POST" });
+
+      if (!r.ok) {
+        return jsonErr("Failed to send campaign", r.status, r.details);
+      }
+
+      return jsonOK({ message: "Campaign send triggered", campaign_id });
+    }
+
+    // ==========================
+    // SCHEDULE existing campaign
+    // ==========================
+    if (isAction(action, "schedule")) {
+      const campaign_id = cleanStr(body?.campaign_id);
+      const schedule_time = cleanStr(body?.schedule_time); // ISO string with timezone preferred
+
+      if (!campaign_id) {
+        return jsonErr("campaign_id is required for schedule", 400);
+      }
+
+      if (!schedule_time) {
+        return jsonErr("schedule_time is required (ISO string)", 400);
+      }
+
+      const r = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/schedule`, { method: "POST", body: { schedule_time } });
+
+      if (!r.ok) {
+        return jsonErr("Failed to schedule campaign", r.status, r.details);
+      }
+
+      return jsonOK({ message: "Campaign scheduled", campaign_id, schedule_time });
+    }
+
+    // ==========================
+    // CREATE (draft) campaign(s)
+    // action: create | create_send | create_schedule
+    // ==========================
+    const subject_line = cleanStr(body?.subject || body?.subject_line);
+    const preview_text = cleanStr(body?.preview_text);
+    const template_id = body?.template_id ? Number(body.template_id) : null;
+
+    const audiencesRaw = Array.isArray(body?.audiences) ? body.audiences.join(",") : (body?.audiences || body?.list_ids || "");
+
+    const listIds = splitCsv(audiencesRaw);
+
+    if (!subject_line) {
+      return jsonErr("subject is required", 400);
+    }
+
+    if (!listIds.length) {
+      return jsonErr("audiences (comma separated) is required", 400);
+    }
+
+    const from_name = cleanStr(body?.from_name || process.env.MAILCHIMP_FROM_NAME || "");
+    const reply_to = cleanStr(body?.reply_to || process.env.MAILCHIMP_REPLY_TO || "");
+
+    if (!from_name) {
+      return jsonErr("from_name missing (send in body or set MAILCHIMP_FROM_NAME)", 400);
+    }
+
+    if (!reply_to) {
+      return jsonErr("reply_to missing (send in body or set MAILCHIMP_REPLY_TO)", 400);
+    }
+
+    const title = cleanStr(body?.title) || `Draft - ${subject_line}`.slice(0, 100);
+
+    // optional: schedule after create
+    const schedule_time = cleanStr(body?.schedule_time);
+
+    const created = [];
+
+    for (const list_id of listIds) {
+      // 1) Create campaign (draft)
+      const payload = {
+        type: "regular",
+        recipients: { list_id },
+        settings: {
+          title,
+          subject_line,
+          preview_text: preview_text || "",
+          from_name,
+          reply_to,
+        },
+      };
+
+      const r = await mailchimpFetch(`/campaigns`, { method: "POST", body: payload });
+
+      if (!r.ok) {
+        return jsonErr(`Failed to create draft campaign for audience ${list_id}`, r.status, r.details);
+      }
+
+      const campaign_id = r.data?.id || null;
+      const web_id = r.data?.web_id || null;
+
+      if (!campaign_id) {
+        return jsonErr(`Campaign created but missing id for audience ${list_id}`, 500);
+      }
+
+      // 2) Attach template (content)
+      if (template_id) {
+        const r2 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/content`, {
+          method: "PUT",
+          body: { template: { id: template_id } },
+        });
+
+        if (!r2.ok) {
+          return jsonErr(`Campaign created but failed to attach template for audience ${list_id}`, r2.status, r2.details);
+        }
+      }
+
+      // 3) Optional: send now
+      if (isAction(action, "create_send")) {
+        const r3 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/send`, {
+          method: "POST",
+        });
+
+        if (!r3.ok) {
+          return jsonErr(`Campaign created but failed to send for audience ${list_id}`, r3.status, r3.details);
+        }
+      }
+
+      // 4) Optional: schedule
+      if (isAction(action, "create_schedule")) {
+        if (!schedule_time) return jsonErr("schedule_time required for create_schedule", 400);
+
+        const r4 = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaign_id)}/actions/schedule`, {
+          method: "POST",
+          body: { schedule_time },
+        });
+
+        if (!r4.ok) {
+          return jsonErr(`Campaign created but failed to schedule for audience ${list_id}`, r4.status, r4.details);
+        }
+      }
+
+      created.push({
+        list_id,
+        campaign_id,
+        web_id,
+        status: isAction(action, "create_send")
+          ? "sending"
+          : isAction(action, "create_schedule")
+          ? "schedule"
+          : (r.data?.status || "save"),
+        template_id: template_id || null,
+      });
+    }
+
+    return jsonOK({
+      message: "Campaign operation completed",
+      action,
+      created_count: created.length,
+      campaigns: created,
+      campaign_id: created.length === 1 ? created[0].campaign_id : null,
+      web_id: created.length === 1 ? created[0].web_id : null,
+    });
+  } catch (e) {
+    return jsonErr(e?.message || "Server error", 500);
+  }
+}
+
+// For Delete campaign
+export async function DELETE(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+
+    // Allow both: /api/mailchimp/campaigns?id=XXX  OR  /api/mailchimp/campaigns?campaign_id=XXX
+    const campaignId = String(searchParams.get("id") || searchParams.get("campaign_id") || "").trim();
+
+    if (!campaignId) {
+      return jsonErr("Missing campaign id. Use /api/mailchimp/campaigns?id=XXXX", 400);
+    }
+
+    const r = await mailchimpFetch(`/campaigns/${encodeURIComponent(campaignId)}`, { method: "DELETE" });
+
+    if (!r.ok) {
+      return jsonErr("Failed to delete campaign", r.status || 500, r.details || null);
+    }
+
+    // Mailchimp usually returns 204 No Content for delete (no JSON body)
+    return jsonOK({
+      message: "Campaign deleted successfully",
+      campaign_id: campaignId,
+    });
+  } catch (e) {
+    return jsonErr(e?.message || "Server error", 500);
+  }
+}
