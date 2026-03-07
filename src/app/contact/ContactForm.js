@@ -9,26 +9,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-
-// ✅ TOAST
 import { useToast } from "@/components/ui/use-toast";
+
+import styles from "./ContactForm.module.css";
 
 function Field({ label, required, error, children }) {
   return (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">
-        {required ? <span className="text-red-600">*</span> : null} {label}
+    <div className={styles.fieldWrap}>
+      <Label className={styles.fieldLabel}>
+        {required ? <span className={styles.requiredMark}>*</span> : null} {label}
       </Label>
       {children}
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className={styles.fieldError}>{error}</p> : null}
     </div>
   );
 }
 
 function WarningBar({ show }) {
   if (!show) return null;
+
   return (
-    <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+    <div className={styles.warningBar}>
       Warning: Please check form carefully for errors!
     </div>
   );
@@ -38,7 +39,6 @@ export default function ContactForm({ session, storeName = "Support" }) {
   const [serverMsg, setServerMsg] = useState(null);
   const [serverErr, setServerErr] = useState(null);
 
-  // ✅ TOAST
   const { toast } = useToast();
 
   const defaults = useMemo(() => {
@@ -59,8 +59,8 @@ export default function ContactForm({ session, storeName = "Support" }) {
     formState: { errors, isSubmitting, submitCount },
   } = useForm({
     defaultValues: defaults,
-    mode: "onSubmit",          // show errors on submit (like OpenCart)
-    reValidateMode: "onChange" // remove errors while typing
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   useEffect(() => {
@@ -79,63 +79,58 @@ export default function ContactForm({ session, storeName = "Support" }) {
 
       setServerMsg("Message sent successfully. Our team will contact you soon.");
 
-      // ✅ TOAST (success)
       toast({
         title: "Message sent",
-        description: `Thanks! ${storeName} will contact you soon.`
+        description: `Thanks! ${storeName} will contact you soon.`,
       });
-
-      // TODO: connect API later
 
       reset();
     } catch (e) {
       setServerErr("Failed to send message. Please try again.");
 
-      // ✅ TOAST (error)
       toast({
         title: "Failed to send",
         description: "Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   }
 
-  // ✅ TOAST (validation errors on submit)
   function onInvalid() {
     toast({
       title: "Please fix the errors",
       description: "Check the highlighted fields and try again.",
-      variant: "destructive"
+      variant: "destructive",
     });
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
-      {/* Server messages */}
-      {/* {serverErr ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {serverErr}
-        </div>
-      ) : null}
-
-      {serverMsg ? (
-        <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {serverMsg}
-        </div>
-      ) : null} */}
-
-      {/* OpenCart-like warning bar */}
+    <form
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
+      className={styles.formWrap}
+    >
+      {/* {serverErr ? <div className={styles.errorBox}>{serverErr}</div> : null} */}
+      {/* {serverMsg ? <div className={styles.successBox}>{serverMsg}</div> : null} */}
       {/* <WarningBar show={showWarning} /> */}
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className={styles.twoColGrid}>
         <Field label="First Name" required error={errors.firstname?.message}>
           <Input
             {...register("firstname", {
               required: "First Name must be between 1 and 32 characters!",
-              minLength: { value: 1, message: "First Name must be between 1 and 32 characters!" },
-              maxLength: { value: 32, message: "First Name must be between 1 and 32 characters!" },
+              minLength: {
+                value: 1,
+                message: "First Name must be between 1 and 32 characters!",
+              },
+              maxLength: {
+                value: 32,
+                message: "First Name must be between 1 and 32 characters!",
+              },
             })}
-            className={cn(errors.firstname ? "border-red-400 focus-visible:ring-red-200" : "")}
+            className={cn(
+              styles.inputBase,
+              errors.firstname ? styles.inputError : ""
+            )}
           />
         </Field>
 
@@ -143,10 +138,19 @@ export default function ContactForm({ session, storeName = "Support" }) {
           <Input
             {...register("lastname", {
               required: "Last Name must be between 1 and 32 characters!",
-              minLength: { value: 1, message: "Last Name must be between 1 and 32 characters!" },
-              maxLength: { value: 32, message: "Last Name must be between 1 and 32 characters!" },
+              minLength: {
+                value: 1,
+                message: "Last Name must be between 1 and 32 characters!",
+              },
+              maxLength: {
+                value: 32,
+                message: "Last Name must be between 1 and 32 characters!",
+              },
             })}
-            className={cn(errors.lastname ? "border-red-400 focus-visible:ring-red-200" : "")}
+            className={cn(
+              styles.inputBase,
+              errors.lastname ? styles.inputError : ""
+            )}
           />
         </Field>
       </div>
@@ -161,7 +165,10 @@ export default function ContactForm({ session, storeName = "Support" }) {
               message: "E-Mail Address does not appear to be valid!",
             },
           })}
-          className={cn(errors.email ? "border-red-400 focus-visible:ring-red-200" : "")}
+          className={cn(
+            styles.inputBase,
+            errors.email ? styles.inputError : ""
+          )}
         />
       </Field>
 
@@ -171,12 +178,20 @@ export default function ContactForm({ session, storeName = "Support" }) {
           placeholder="10 digit mobile number"
           {...register("telephone", {
             required: "Mobile must be maximum 10 digit & must be numeric!",
-            pattern: { value: /^\d{10}$/, message: "Mobile must be maximum 10 digit & must be numeric!" },
+            pattern: {
+              value: /^\d{10}$/,
+              message: "Mobile must be maximum 10 digit & must be numeric!",
+            },
           })}
           onInput={(e) => {
-            e.target.value = String(e.target.value || "").replace(/\D/g, "").slice(0, 10);
+            e.target.value = String(e.target.value || "")
+              .replace(/\D/g, "")
+              .slice(0, 10);
           }}
-          className={cn(errors.telephone ? "border-red-400 focus-visible:ring-red-200" : "")}
+          className={cn(
+            styles.inputBase,
+            errors.telephone ? styles.inputError : ""
+          )}
         />
       </Field>
 
@@ -185,10 +200,19 @@ export default function ContactForm({ session, storeName = "Support" }) {
           placeholder="Example: Login issue / Billing / Store setup"
           {...register("subject", {
             required: "Subject must be between 3 and 80 characters!",
-            minLength: { value: 3, message: "Subject must be between 3 and 80 characters!" },
-            maxLength: { value: 80, message: "Subject must be between 3 and 80 characters!" },
+            minLength: {
+              value: 3,
+              message: "Subject must be between 3 and 80 characters!",
+            },
+            maxLength: {
+              value: 80,
+              message: "Subject must be between 3 and 80 characters!",
+            },
           })}
-          className={cn(errors.subject ? "border-red-400 focus-visible:ring-red-200" : "")}
+          className={cn(
+            styles.inputBase,
+            errors.subject ? styles.inputError : ""
+          )}
         />
       </Field>
 
@@ -196,26 +220,37 @@ export default function ContactForm({ session, storeName = "Support" }) {
         <Textarea
           placeholder="Write your message here..."
           className={cn(
-            "min-h-[140px]",
-            errors.message ? "border-red-400 focus-visible:ring-red-200" : ""
+            styles.textareaBase,
+            errors.message ? styles.inputError : ""
           )}
           {...register("message", {
             required: "Message must be between 10 and 2000 characters!",
-            minLength: { value: 10, message: "Message must be between 10 and 2000 characters!" },
-            maxLength: { value: 2000, message: "Message must be between 10 and 2000 characters!" },
+            minLength: {
+              value: 10,
+              message: "Message must be between 10 and 2000 characters!",
+            },
+            maxLength: {
+              value: 2000,
+              message: "Message must be between 10 and 2000 characters!",
+            },
           })}
         />
-        <p className="text-xs text-muted-foreground">
-          Please include your affiliate ID, error message, and steps that caused the issue.
+        <p className={styles.helpText}>
+          Please include your affiliate ID, error message, and steps that caused
+          the issue.
         </p>
       </Field>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-muted-foreground">
+      <div className={styles.submitBox}>
+        <p className={`${styles.submitText} hidden sm:block`}>
           By submitting, you agree to be contacted by {storeName}.
         </p>
 
-        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className={styles.submitBtn}
+        >
           {isSubmitting ? "Sending..." : "Send Message"}
         </Button>
       </div>

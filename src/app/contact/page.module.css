@@ -1,0 +1,253 @@
+.pageBg {
+  min-height: 100vh;
+  background: linear-gradient(
+    180deg,
+    #fffaff 0%,
+    #f8f0ff 20%,
+    #ffffff 48%,
+    #fcf8ff 72%,
+    #ffffff 100%
+  );
+}
+
+.pageWrap {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.heroCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  border: 1px solid #efdefb;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 1.5rem;
+  box-shadow: 0 16px 45px rgba(125, 90, 190, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.heroGlowWrap {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.8;
+}
+
+.heroGlowLeft {
+  position: absolute;
+  left: -5rem;
+  top: -4rem;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 999px;
+  background: #ead7fb;
+  filter: blur(48px);
+}
+
+.heroGlowRight {
+  position: absolute;
+  right: -5rem;
+  top: -2.5rem;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 999px;
+  background: #f5eaff;
+  filter: blur(48px);
+}
+
+.heroContent {
+  position: relative;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid #ead7fb;
+  background: #f5eaff;
+  padding: 0.25rem 0.75rem;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #8b5cc7;
+}
+
+.heroBadgeDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #8b5cc7;
+}
+
+.heroTitle {
+  margin-top: 1rem;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.heroText {
+  margin-top: 0.75rem;
+  max-width: 42rem;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  color: #64748b;
+}
+
+.contentGrid {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.mainCard {
+  border-radius: 30px;
+  border: 1px solid #efdefb !important;
+  background: #ffffff !important;
+  box-shadow: 0 16px 45px rgba(125, 90, 190, 0.08);
+}
+
+.mainCardHeader {
+  padding-bottom: 0.5rem !important;
+}
+
+.mainCardTitle {
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+.mainCardDescription {
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+.sidebarWrap {
+  display: block;
+}
+
+.sideCard {
+  border-radius: 30px;
+  border: 1px solid #efdefb !important;
+  background: #ffffff !important;
+  box-shadow: 0 16px 45px rgba(125, 90, 190, 0.08);
+}
+
+.sideCardHeader {
+  padding-bottom: 0.75rem !important;
+}
+
+.sideCardTitle {
+  color: #0f172a;
+}
+
+.sideCardDescription {
+  color: #64748b;
+}
+
+.sideCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.infoBox {
+  border-radius: 22px;
+  border: 1px solid #efdefb;
+  background: linear-gradient(180deg, #fffaff 0%, #fbf6ff 100%);
+  padding: 1rem;
+}
+
+.infoLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9a6bd8;
+}
+
+.infoValue {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.infoValueBreak {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  word-break: break-all;
+}
+
+.infoText {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+.separator {
+  background: #efdefb !important;
+}
+
+.questionBox {
+  border-radius: 22px;
+  border: 1px solid #efdefb;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.questionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.questionList {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.contactLink {
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.contactLink:hover {
+  color: #7d48c8;
+}
+
+@media (min-width: 1024px) {
+  .pageWrap {
+    padding-top: 3rem;
+  }
+
+  .heroCard {
+    padding: 2.5rem;
+  }
+
+  .heroTitle {
+    font-size: 2.25rem;
+  }
+
+  .heroText {
+    font-size: 1rem;
+  }
+
+  .contentGrid {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+}
