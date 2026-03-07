@@ -94,7 +94,7 @@ export default async function ContactPage() {
 
               <CardContent className={styles.sideCardContent}>
                 <div className={styles.infoBox}>
-                  <div className={styles.infoLabel}>Support Email</div>
+                  <div className={styles.infoLabel}>Email</div>
                   <div className={styles.infoValueBreak}>
                     <a href={`mailto:${storeEmail}`} className={styles.contactLink}>{storeEmail}</a>
                   </div>
