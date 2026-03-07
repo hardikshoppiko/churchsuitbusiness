@@ -1,0 +1,178 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid #efdefb;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+}
+
+.nav {
+  padding: 0.75rem 0;
+}
+
+.brandLink {
+  min-width: 0;
+}
+
+.logoWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.logoImg {
+  max-height: 34px;
+  width: auto;
+  display: block;
+}
+
+.brandTextWrap {
+  min-width: 0;
+}
+
+.brandTitle {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #9a6bd8;
+  line-height: 1.2;
+}
+
+.brandSubtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.outlineBtn {
+  border-radius: 999px !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  border-color: #e7d5fb !important;
+  color: #7d48c8 !important;
+  background: #ffffff !important;
+}
+
+.primaryBtn {
+  border-radius: 999px !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(125, 72, 200, 0.14) !important;
+  background: linear-gradient(135deg, #9d6ce0 0%, #7d48c8 100%) !important;
+}
+
+.dropdownContent {
+  width: 16rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid #efdefb !important;
+  background: #ffffff !important;
+  padding: 0.5rem;
+  box-shadow: 0 18px 45px rgba(125, 90, 190, 0.12) !important;
+}
+
+.dropdownLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9a6bd8;
+}
+
+.dropdownName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-top: 2px;
+}
+
+.dropdownEmail {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.dropdownItemLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+  color: #111827;
+  width: 100%;
+}
+
+.logoutItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  color: #dc2626 !important;
+  background: transparent !important;
+}
+
+.mobileMenuBtn {
+  border-radius: 999px !important;
+  border-color: #e7d5fb !important;
+  color: #7d48c8 !important;
+  background: #ffffff !important;
+}
+
+.sheetContent {
+  width: 320px !important;
+  border: 0 !important;
+  background: linear-gradient(180deg, #fffaff 0%, #f8f1ff 100%) !important;
+}
+
+.sheetTitle {
+  color: #7d48c8 !important;
+  font-weight: 700 !important;
+}
+
+.mobileAccountBox {
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  border: 1px solid #efdefb;
+  background: #ffffff;
+  padding: 0.75rem;
+}
+
+.mobileOutlineBtn {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  border-radius: 999px !important;
+  border-color: #e7d5fb !important;
+  color: #7d48c8 !important;
+  background: #ffffff !important;
+}
+
+.mobilePrimaryBtn {
+  width: 100% !important;
+  border-radius: 999px !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #9d6ce0 0%, #7d48c8 100%) !important;
+}
+
+.mobileDangerBtn {
+  width: 100% !important;
+  border-radius: 999px !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+}
+
+@media (min-width: 640px) {
+  .sheetContent {
+    width: 360px !important;
+  }
+}
