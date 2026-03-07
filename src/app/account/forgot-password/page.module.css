@@ -1,0 +1,23 @@
+.pageBg {
+  min-height: calc(100vh - 70px);
+
+  background: linear-gradient(
+    180deg,
+    #fffaff 0%,
+    #f7efff 25%,
+    #ffffff 50%,
+    #faf5ff 75%,
+    #ffffff 100%
+  );
+}
+
+.pageWrap {
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+  padding: 60px 20px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

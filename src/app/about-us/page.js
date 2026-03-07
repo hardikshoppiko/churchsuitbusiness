@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -155,9 +157,9 @@ export default function AboutPage() {
               <p className={styles.ctaText}>{content.ctaText}</p>
             </div>
 
-            <a href="/register" className={styles.ctaBtn}>
+            <Link href="/register" className={styles.ctaBtn}>
               {content.ctaButton}
-            </a>
+            </Link>
           </div>
         </section>
       </div>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -153,9 +155,9 @@ export default function PrivacyPage() {
               <p className={styles.ctaText}>{content.contactText}</p>
             </div>
 
-            <a href="/contact" className={styles.ctaBtn}>
+            <Link href="/contact" className={styles.ctaBtn}>
               {content.contactButton}
-            </a>
+            </Link>
           </div>
         </section>
       </div>

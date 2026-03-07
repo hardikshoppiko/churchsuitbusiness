@@ -1,15 +1,16 @@
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
+import styles from "./page.module.css";
 
 export const metadata = {
-  title: "Affiliate Login | Church Suit Business",
-  description: "Login to your Affiliate account | Church Suit Business",
+  title: `Affiliate Login | ${process.env.NEXT_PUBLIC_STORE_NAME}`,
+  description: `Login to your Affiliate account | ${process.env.NEXT_PUBLIC_STORE_NAME}`,
 };
 
 export default function LoginPage() {
   return (
-    <main className="min-h-[calc(100vh-70px)] bg-muted/40">
-      <div className="container flex min-h-[calc(100vh-70px)] items-center justify-center py-8">
+    <main className={styles.pageBg}>
+      <div className={styles.pageWrap}>
         <Suspense fallback={<LoginFallback />}>
           <LoginForm />
         </Suspense>
@@ -20,19 +21,17 @@ export default function LoginPage() {
 
 function LoginFallback() {
   return (
-    <div className="w-full max-w-4xl rounded-2xl border bg-background p-6 shadow-sm">
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* left skeleton */}
-        <div className="space-y-4">
-          <div className="h-7 w-40 rounded bg-muted" />
-          <div className="h-10 rounded bg-muted" />
-          <div className="h-10 rounded bg-muted" />
-          <div className="h-10 rounded bg-muted" />
-          <div className="h-4 w-56 rounded bg-muted" />
+    <div className={styles.fallbackCard}>
+      <div className={styles.fallbackGrid}>
+        <div className={styles.fallbackLeft}>
+          <div className={styles.skTitle} />
+          <div className={styles.skInput} />
+          <div className={styles.skInput} />
+          <div className={styles.skButton} />
+          <div className={styles.skSmall} />
         </div>
 
-        {/* right skeleton */}
-        <div className="hidden lg:block rounded-xl bg-muted" />
+        <div className={styles.fallbackRight} />
       </div>
     </div>
   );

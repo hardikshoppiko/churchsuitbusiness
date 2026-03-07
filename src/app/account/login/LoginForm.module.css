@@ -1,0 +1,356 @@
+.loginCard {
+  width: 100%;
+  max-width: 80rem;
+  overflow: hidden;
+  border-radius: 28px !important;
+  border: 1px solid #efdefb !important;
+  background: #ffffff !important;
+  box-shadow: 0 16px 45px rgba(125, 90, 190, 0.08) !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.loginGrid {
+  display: grid;
+  min-height: 560px;
+  grid-template-columns: 1fr;
+}
+
+.formSide {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(180deg, #fffaff 0%, #ffffff 100%);
+}
+
+.formInner {
+  width: 100%;
+  padding: 1.5rem;
+}
+
+.headerBlock {
+  margin-bottom: 1.75rem;
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid #ead7fb;
+  background: #f5eaff;
+  padding: 0.35rem 0.85rem;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #8b5cc7;
+}
+
+.title {
+  margin-top: 1rem;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #64748b;
+}
+
+.alertBox {
+  margin-bottom: 1rem;
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.alertError {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.alertSuccess {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.fieldWrap {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.passwordRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.forgotLink {
+  font-size: 0.85rem;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forgotLink:hover {
+  color: #7d48c8;
+}
+
+.inputBase {
+  height: 46px !important;
+  border-radius: 14px !important;
+  border-color: #e8d9fb !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.inputBase:focus-visible {
+  box-shadow: 0 0 0 4px rgba(125, 72, 200, 0.12) !important;
+}
+
+.inputError {
+  border-color: #f87171 !important;
+}
+
+.inputError:focus-visible {
+  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12) !important;
+}
+
+.errorText {
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.primaryBtn {
+  width: 100% !important;
+  height: 46px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #9d6ce0 0%, #7d48c8 100%) !important;
+  box-shadow: 0 10px 24px rgba(125, 72, 200, 0.16) !important;
+}
+
+.secondaryBtn {
+  width: 100% !important;
+  height: 46px !important;
+  border-radius: 999px !important;
+  border-color: #e7d5fb !important;
+  color: #7d48c8 !important;
+  background: #ffffff !important;
+}
+
+.dividerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.dividerLine {
+  height: 1px;
+  flex: 1;
+  background: #e9e2f5;
+}
+
+.dividerText {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.visualSide {
+  position: relative;
+  display: none;
+  overflow: hidden;
+}
+
+.visualBg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #5f2ea8 0%, #7d48c8 45%, #b389ef 100%);
+}
+
+.visualGlowWrap {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+}
+
+.visualGlowTop {
+  position: absolute;
+  top: -7rem;
+  right: -7rem;
+  width: 24rem;
+  height: 24rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  filter: blur(48px);
+}
+
+.visualGlowBottom {
+  position: absolute;
+  left: -7rem;
+  bottom: -7rem;
+  width: 24rem;
+  height: 24rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  filter: blur(48px);
+}
+
+.visualContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem;
+  color: #ffffff;
+}
+
+.visualTop {
+  display: grid;
+  gap: 1rem;
+}
+
+.visualBadge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 0.35rem 0.85rem;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.visualHeadingWrap {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.visualTitle {
+  max-width: 24rem;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.visualText {
+  max-width: 22rem;
+  font-size: 0.96rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.visualBottom {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.featureCard {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1.25rem;
+  backdrop-filter: blur(10px);
+}
+
+.featureTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.featureList {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.featureItem {
+  display: flex;
+  gap: 0.65rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.featureDot {
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-top: 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  flex: 0 0 auto;
+}
+
+.legalText {
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (min-width: 640px) {
+  .formInner {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .loginGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .headerBlock {
+    text-align: left;
+  }
+
+  .visualSide {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .formInner {
+    padding: 2.5rem;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .visualTitle {
+    font-size: 2.5rem;
+  }
+
+  .visualContent {
+    padding: 2.75rem;
+  }
+}

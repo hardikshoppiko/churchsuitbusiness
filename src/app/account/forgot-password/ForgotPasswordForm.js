@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { useToast } from "@/components/ui/use-toast";
+
+import styles from "./ForgotPasswordForm.module.css";
 
 function isValidLogin(v) {
   const s = String(v || "").trim();
@@ -17,7 +18,8 @@ function isValidLogin(v) {
 
   const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
   const digits = s.replace(/\D/g, "");
-  const isPhone = /^\d{10,15}$/.test(digits); // ✅ mobile
+  const isPhone = /^\d{10,15}$/.test(digits);
+
   return isEmail || isPhone;
 }
 
@@ -38,7 +40,6 @@ export default function ForgotPasswordForm() {
     setLoading(true);
 
     try {
-      // ✅ API already supports: email | username | login
       const res = await fetch("/api/account/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,7 +60,8 @@ export default function ForgotPasswordForm() {
 
       toast({
         title: "Check your email",
-        description: "If an account exists, you'll receive a password reset link shortly.",
+        description:
+          "If an account exists, you'll receive a password reset link shortly.",
       });
     } catch {
       toast({
@@ -73,87 +75,80 @@ export default function ForgotPasswordForm() {
   }
 
   return (
-    <Card className="py-0 overflow-hidden rounded-3xl border bg-background shadow-sm">
-      <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* LEFT */}
-        <div className="p-6 sm:p-10">
-          <CardHeader className="p-0">
-            <CardTitle className="text-2xl">Forgot your password?</CardTitle>
-            <CardDescription className="mt-2">
-              Enter your email or mobile number and we’ll send a reset link.
-            </CardDescription>
-          </CardHeader>
+    <Card className={`${styles.card} p-0`}>
+      <div className={styles.grid}>
+        {/* LEFT SIDE */}
+        <div className={styles.formSide}>
+          <div className={styles.header}>
+            <div className={styles.badge}>Account Recovery</div>
 
-          <CardContent className="p-0 mt-8">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="login">Email or Mobile</Label>
-                <Input
-                  id="login"
-                  placeholder="you@example.com or 10 digit mobile"
-                  autoComplete="username"
-                  {...register("login", {
-                    required: "Email or Mobile is required",
-                    validate: (v) => isValidLogin(v) || "Enter a valid email or mobile number",
-                  })}
-                  className={errors.login ? "border-red-500 focus-visible:ring-red-500/30" : ""}
-                />
-                {errors.login ? (
-                  <p className="text-sm text-red-600">{errors.login.message}</p>
-                ) : null}
-              </div>
+            <h1 className={styles.title}>Forgot your password?</h1>
 
-              <Button type="submit" className="w-full mb-3" disabled={loading}>
-                {loading ? "Sending..." : "Send Reset Link"}
-              </Button>
-
-              <div className="flex items-center justify-between gap-3 text-sm relative z-10">
-                <Link
-                  href="/account/login"
-                  className="text-muted-foreground hover:text-foreground text-decoration-none"
-                >
-                  Back to login
-                </Link>
-
-                <Link
-                  href="/register"
-                  className="text-muted-foreground hover:text-foreground text-decoration-none inline-block"
-                >
-                  Register
-                </Link>
-              </div>
-
-              <div className="text-xs text-muted-foreground">
-                For security, we won't confirm whether an account exists.
-              </div>
-            </form>
-          </CardContent>
-        </div>
-
-        {/* RIGHT */}
-        <div className="relative hidden md:flex">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0B2B7A] via-[#225ED7] to-[#4F8BFF]" />
-          <div className="absolute inset-0 opacity-40">
-            <div className="absolute -top-28 -right-28 h-96 w-96 rounded-full bg-white/20 blur-3xl" />
-            <div className="absolute -bottom-28 -left-28 h-96 w-96 rounded-full bg-white/15 blur-3xl" />
+            <p className={styles.subtitle}>
+              Enter your email or mobile number and we'll send a secure reset
+              link.
+            </p>
           </div>
 
-          <div className="relative z-10 flex w-full flex-col justify-between p-10 text-white">
-            <div className="space-y-4">
-              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-                Account Security
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+            <div className={styles.field}>
+              <Label>Email or Mobile</Label>
 
-              <div className="space-y-2">
-                <h2 className="text-4xl font-bold leading-tight">Reset securely.</h2>
-                <p className="max-w-sm text-white/85">
-                  We'll email you a secure reset link so you can set a new password.
-                </p>
-              </div>
+              <Input
+                placeholder="you@example.com or 10 digit mobile"
+                autoComplete="username"
+                {...register("login", {
+                  required: "Email or Mobile is required",
+                  validate: (v) =>
+                    isValidLogin(v) || "Enter a valid email or mobile number",
+                })}
+                className={errors.login ? styles.inputError : ""}
+              />
+
+              {errors.login && (
+                <p className={styles.error}>{errors.login.message}</p>
+              )}
             </div>
 
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur text-sm text-white/90">
-              Tip: Check your spam/junk folder if you don’t see the email within a few minutes.
+            <Button type="submit" className={styles.submitBtn} disabled={loading}>
+              {loading ? "Sending..." : "Send Reset Link"}
+            </Button>
+
+            <div className={styles.links}>
+              <Link href="/account/login" className={styles.link}>
+                Back to login
+              </Link>
+
+              <Link href="/register" className={styles.link}>
+                Register
+              </Link>
+            </div>
+
+            <div className={styles.note}>
+              For security, we won't confirm whether an account exists.
+            </div>
+          </form>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className={styles.visual}>
+          <div className={styles.visualOverlay} />
+
+          <div className={styles.visualContent}>
+            <div className={styles.visualTop}>
+              <div className={styles.visualBadge}>Account Security</div>
+
+              <h2 className={styles.visualTitle}>Reset securely.</h2>
+
+              <p className={styles.visualText}>
+                We'll email you a secure password reset link so you can regain
+                access to your account safely.
+              </p>
+            </div>
+
+            <div className={styles.tip}>
+              Tip: Check your spam folder if you don't see the email within a
+              few minutes.
             </div>
           </div>
         </div>

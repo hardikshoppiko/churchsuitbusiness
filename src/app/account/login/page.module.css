@@ -1,0 +1,89 @@
+.pageBg {
+  min-height: calc(100vh - 70px);
+  background: linear-gradient(
+    180deg,
+    #fffaff 0%,
+    #f8f0ff 20%,
+    #ffffff 48%,
+    #fcf8ff 72%,
+    #ffffff 100%
+  );
+}
+
+.pageWrap {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.fallbackCard {
+  width: 100%;
+  max-width: 72rem;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid #efdefb;
+  background: #ffffff;
+  box-shadow: 0 16px 45px rgba(125, 90, 190, 0.08);
+}
+
+.fallbackGrid {
+  display: grid;
+  gap: 0;
+}
+
+.fallbackLeft {
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.fallbackRight {
+  display: none;
+  min-height: 100%;
+  background: linear-gradient(135deg, #f5eaff 0%, #ead7fb 100%);
+}
+
+.skTitle,
+.skInput,
+.skButton,
+.skSmall {
+  border-radius: 12px;
+  background: #f1edf7;
+}
+
+.skTitle {
+  height: 28px;
+  width: 180px;
+}
+
+.skInput {
+  height: 44px;
+  width: 100%;
+}
+
+.skButton {
+  height: 44px;
+  width: 100%;
+}
+
+.skSmall {
+  height: 16px;
+  width: 180px;
+}
+
+@media (min-width: 1024px) {
+  .fallbackGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fallbackLeft {
+    padding: 2.5rem;
+  }
+
+  .fallbackRight {
+    display: block;
+    min-height: 580px;
+  }
+}

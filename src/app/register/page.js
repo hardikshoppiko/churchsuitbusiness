@@ -20,7 +20,7 @@ export default async function RegisterPage() {
   const defaultZoneId = Number(settings?.config?.config_zone_id || 0) || 0;
 
   return (
-    <main className="w-full px-0 py-0 lg:mx-auto lg:max-w-6xl lg:px-4 lg:py-12">
+    <main className="w-full pt-4 py-0 lg:mx-auto lg:max-w-6xl lg:px-4 lg:py-12">
       {/* Premium Header */}
       <div className="hidden lg:block relative overflow-hidden rounded-3xl border bg-background p-6 shadow-sm lg:p-10">
         <div className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_top,black,transparent_65%)]">
