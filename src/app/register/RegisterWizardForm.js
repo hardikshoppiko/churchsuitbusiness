@@ -11,17 +11,10 @@ import TermsContent from "@/app/register/TermsContent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
-// ✅ TOAST
 import { useToast } from "@/components/ui/use-toast";
+
+import styles from "./RegisterWizardForm.module.css";
 
 /* ================================
    Helpers
@@ -76,7 +69,10 @@ function clearWizard() {
   localStorage.removeItem("undefined");
 
   Object.keys(localStorage).forEach((k) => {
-    if (k.startsWith("affiliate_register_") || k.startsWith("affiliate_registerWizard")) {
+    if (
+      k.startsWith("affiliate_register_") ||
+      k.startsWith("affiliate_registerWizard")
+    ) {
       localStorage.removeItem(k);
     }
   });
@@ -87,24 +83,30 @@ function clearWizard() {
 ================================ */
 function StepPill({ active, done, number, label }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className={styles.stepPill}>
       <div
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold",
+          styles.stepPillCircle,
           done
-            ? "bg-primary text-primary-foreground border-primary"
+            ? styles.stepPillDone
             : active
-            ? "border-primary text-primary"
-            : "border-border text-muted-foreground"
+            ? styles.stepPillActive
+            : styles.stepPillDefault
         )}
       >
         {done ? "✓" : number}
       </div>
-      <div className="leading-tight">
-        <div className={cn("text-sm font-semibold", active ? "text-foreground" : "text-muted-foreground")}>
+
+      <div className={styles.stepPillTextWrap}>
+        <div
+          className={cn(
+            styles.stepPillLabel,
+            active ? styles.stepPillLabelActive : styles.stepPillLabelMuted
+          )}
+        >
           {label}
         </div>
-        <div className="text-xs text-muted-foreground">Step {number}</div>
+        <div className={styles.stepPillSubLabel}>Step {number}</div>
       </div>
     </div>
   );
@@ -112,15 +114,18 @@ function StepPill({ active, done, number, label }) {
 
 function Field({ label, required, error, hint, children }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-end justify-between gap-3">
-        <Label className="text-sm font-medium">
-          {required ? <span className="text-red-500">*</span> : null} {label}
+    <div className={styles.fieldWrap}>
+      <div className={styles.fieldHead}>
+        <Label className={styles.fieldLabel}>
+          {required ? <span className={styles.requiredMark}>*</span> : null}{" "}
+          {label}
         </Label>
-        {hint ? <span className="text-xs text-muted-foreground">{hint}</span> : null}
+        {hint ? <span className={styles.fieldHint}>{hint}</span> : null}
       </div>
+
       {children}
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      {error ? <p className={styles.fieldError}>{error}</p> : null}
     </div>
   );
 }
@@ -132,10 +137,9 @@ function Select({ value, onChange, disabled, error, children }) {
       onChange={onChange}
       disabled={disabled}
       className={cn(
-        "h-10 w-full rounded-md border bg-background px-3 text-sm outline-none",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        disabled ? "opacity-70" : "",
-        error ? "border-red-500" : "border-input"
+        styles.selectBase,
+        disabled ? styles.selectDisabled : "",
+        error ? styles.selectError : ""
       )}
     >
       {children}
@@ -144,17 +148,17 @@ function Select({ value, onChange, disabled, error, children }) {
 }
 
 function Banner({ variant = "info", title, desc }) {
-  const styles =
+  const bannerClass =
     variant === "error"
-      ? "border-red-200 bg-red-50 text-red-800"
+      ? styles.bannerError
       : variant === "success"
-      ? "border-green-200 bg-green-50 text-green-800"
-      : "border-border bg-muted/40 text-foreground";
+      ? styles.bannerSuccess
+      : styles.bannerInfo;
 
   return (
-    <div className={cn("rounded-xl border p-4", styles)}>
-      {title ? <div className="font-semibold">{title}</div> : null}
-      {desc ? <div className="text-sm mt-1 opacity-90">{desc}</div> : null}
+    <div className={cn(styles.bannerBase, bannerClass)}>
+      {title ? <div className={styles.bannerTitle}>{title}</div> : null}
+      {desc ? <div className={styles.bannerDesc}>{desc}</div> : null}
     </div>
   );
 }
@@ -169,8 +173,6 @@ export default function RegisterWizardForm({
   defaultZoneId = 0,
 }) {
   const router = useRouter();
-
-  // ✅ TOAST
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);
@@ -190,7 +192,9 @@ export default function RegisterWizardForm({
   const [persistEnabled, setPersistEnabled] = useState(true);
 
   const defaultPlanId = useMemo(() => {
-    return plans?.[0]?.affiliate_plan_id ? String(plans[0].affiliate_plan_id) : "";
+    return plans?.[0]?.affiliate_plan_id
+      ? String(plans[0].affiliate_plan_id)
+      : "";
   }, [plans]);
 
   const {
@@ -277,7 +281,9 @@ export default function RegisterWizardForm({
 
     setZonesLoading(true);
     try {
-      const res = await fetch(`/api/geo/zones?country_id=${country_id}`, { cache: "no-store" });
+      const res = await fetch(`/api/geo/zones?country_id=${country_id}`, {
+        cache: "no-store",
+      });
       const data = await res.json().catch(() => ({}));
       const list = Array.isArray(data?.zones) ? data.zones : [];
       setZones(list);
@@ -298,7 +304,10 @@ export default function RegisterWizardForm({
 
   useEffect(() => {
     if (defaultCountryId) {
-      fetchZones(String(defaultCountryId), defaultZoneId ? String(defaultZoneId) : "");
+      fetchZones(
+        String(defaultCountryId),
+        defaultZoneId ? String(defaultZoneId) : ""
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -369,7 +378,6 @@ export default function RegisterWizardForm({
       }
       setDomainInfo(data);
 
-      // ✅ TOAST (domain check result)
       if (data?.error && data?.domain_not_available) {
         toast({
           title: "Domain not available",
@@ -380,7 +388,9 @@ export default function RegisterWizardForm({
       } else if (data?.success || data?.domain_found) {
         toast({
           title: "Domain looks available",
-          description: String(data?.domain_found || data?.success || "You can continue."),
+          description: String(
+            data?.domain_found || data?.success || "You can continue."
+          ),
           position: "top-right",
         });
       }
@@ -388,7 +398,6 @@ export default function RegisterWizardForm({
       setDomainInfo({ error: "Domain check failed. Please try again." });
       setValue("is_domain_available", 0);
 
-      // ✅ TOAST
       toast({
         title: "Domain check failed",
         description: "Please try again.",
@@ -404,7 +413,10 @@ export default function RegisterWizardForm({
     const domain = String(d || "").trim();
     if (!domain) return;
 
-    setValue("website", domain, { shouldValidate: true, shouldDirty: true });
+    setValue("website", domain, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
     setDomainInfo(null);
     checkDomainAvaibilityStatus(domain);
   }
@@ -419,7 +431,6 @@ export default function RegisterWizardForm({
       setValue("is_domain_available", 1);
       setDomainInfo(null);
 
-      // ✅ TOAST
       toast({
         title: "Using your own domain",
         description: "You can continue without availability check.",
@@ -447,9 +458,14 @@ export default function RegisterWizardForm({
     setServerMsg(null);
     setServerErr(null);
 
-    const ok = await trigger(["firstname", "lastname", "email", "telephone"]);
+    const ok = await trigger([
+      "firstname",
+      "lastname",
+      "email",
+      "telephone",
+    ]);
+
     if (!ok) {
-      // ✅ TOAST (validation fail)
       toast({
         title: "Please fix the errors",
         description: "Check the highlighted fields to continue.",
@@ -474,7 +490,6 @@ export default function RegisterWizardForm({
         const msg = data?.message || "Step 1 update failed. Please try again.";
         setServerErr(msg);
 
-        // ✅ TOAST
         toast({
           title: "Step 1 failed",
           description: msg,
@@ -487,7 +502,6 @@ export default function RegisterWizardForm({
       setServerMsg("Step 1 updated successfully.");
       setStep(2);
 
-      // ✅ TOAST
       toast({
         title: "Step 1 saved",
         description: "Personal info updated successfully.",
@@ -510,7 +524,6 @@ export default function RegisterWizardForm({
       const msg = data?.message || "Step 1 failed. Please try again.";
       setServerErr(msg);
 
-      // ✅ TOAST
       toast({
         title: "Step 1 failed",
         description: msg,
@@ -524,7 +537,6 @@ export default function RegisterWizardForm({
     setServerMsg("Step 1 saved successfully.");
     setStep(2);
 
-    // ✅ TOAST
     toast({
       title: "Step 1 saved",
       description: `Affiliate ID created: ${data.affiliate_id}`,
@@ -541,7 +553,6 @@ export default function RegisterWizardForm({
       setServerErr(msg);
       setStep(1);
 
-      // ✅ TOAST
       toast({
         title: "Missing affiliate id",
         description: msg,
@@ -551,7 +562,12 @@ export default function RegisterWizardForm({
       return;
     }
 
-    const ok = await trigger(["affiliate_plan_id", "business_name", "website"]);
+    const ok = await trigger([
+      "affiliate_plan_id",
+      "business_name",
+      "website",
+    ]);
+
     if (!ok) {
       toast({
         title: "Please fix the errors",
@@ -573,11 +589,17 @@ export default function RegisterWizardForm({
       store_name: getValues("business_name"),
       business_name: getValues("business_name"),
 
-      is_customer_own_domain: Number(getValues("is_customer_own_domain") || 0),
+      is_customer_own_domain: Number(
+        getValues("is_customer_own_domain") || 0
+      ),
       is_domain_available: Number(getValues("is_domain_available") || 0),
-      is_domain_avaibility_checked: Number(getValues("is_domain_avaibility_checked") || 0),
+      is_domain_avaibility_checked: Number(
+        getValues("is_domain_avaibility_checked") || 0
+      ),
 
-      website: getValues("website") ? `https://www.${getValues("website")}` : "",
+      website: getValues("website")
+        ? `https://www.${getValues("website")}`
+        : "",
 
       fees: plan?.fees || 0,
       stripe_plan_id: plan?.stripe_plan_id || "",
@@ -621,7 +643,6 @@ export default function RegisterWizardForm({
       const msg = data?.message || "Step 2 failed. Please try again.";
       setServerErr(msg);
 
-      // ✅ TOAST
       toast({
         title: "Step 2 failed",
         description: msg,
@@ -634,7 +655,6 @@ export default function RegisterWizardForm({
     setServerMsg("Step 2 saved successfully.");
     setStep(3);
 
-    // ✅ TOAST
     toast({
       title: "Step 2 saved",
       description: "Plan & domain info saved.",
@@ -651,7 +671,6 @@ export default function RegisterWizardForm({
       setServerErr(msg);
       setStep(1);
 
-      // ✅ TOAST
       toast({
         title: "Missing affiliate id",
         description: msg,
@@ -703,7 +722,6 @@ export default function RegisterWizardForm({
       const msg = data?.message || "Step 3 failed. Please try again.";
       setServerErr(msg);
 
-      // ✅ TOAST
       toast({
         title: "Step 3 failed",
         description: msg,
@@ -715,12 +733,13 @@ export default function RegisterWizardForm({
 
     setServerMsg("Registration completed. Redirecting to payment...");
 
-    // ✅ TOAST
     toast({
       title: "Registration completed",
       description: "Redirecting to payment...",
       position: "top-right",
     });
+
+    const finalAffiliateId = affiliateId;
 
     setPersistEnabled(false);
     clearWizard();
@@ -728,72 +747,110 @@ export default function RegisterWizardForm({
     setAffiliateId(null);
     setStep(1);
 
-    router.push(`/register/payment/${affiliateId}`);
+    router.push(`/register/payment/${finalAffiliateId}`);
   }
 
   /* ---------- derived ---------- */
   const stepTitle =
-    step === 1 ? "Personal Information" : step === 2 ? "Plan & Business" : "Store Address & Password";
+    step === 1
+      ? "Personal Information"
+      : step === 2
+      ? "Plan & Business"
+      : "Store Address & Password";
 
   const websiteValue = String(getValues("website") || "").trim();
-  const domainChecked = Number(watch("is_domain_avaibility_checked") || 0) === 1;
-  const domainAvailable = Number(watch("is_domain_available") || 0) === 1;
-  const ownDomain = Number(watch("is_customer_own_domain") || 0) === 1;
+  const domainChecked =
+    Number(watch("is_domain_avaibility_checked") || 0) === 1;
+  const domainAvailable =
+    Number(watch("is_domain_available") || 0) === 1;
+  const ownDomain =
+    Number(watch("is_customer_own_domain") || 0) === 1;
 
   const canProceedStep2 =
-    !!websiteValue && domainChecked && (domainAvailable || ownDomain) && !domainChecking;
+    !!websiteValue &&
+    domainChecked &&
+    (domainAvailable || ownDomain) &&
+    !domainChecking;
 
   const progress = Math.round((step / 3) * 100);
 
   const selectedPlan = useMemo(() => {
-    return plans.find((p) => String(p.affiliate_plan_id) === String(selectedPlanId)) || null;
+    return (
+      plans.find(
+        (p) => String(p.affiliate_plan_id) === String(selectedPlanId)
+      ) || null
+    );
   }, [plans, selectedPlanId]);
 
   return (
-    <div className="w-full max-w-none px-3 py-3 lg:mx-auto lg:max-w-5xl lg:px-4 lg:py-8">
-      {/* Premium background */}
-      <div className="relative overflow-hidden rounded-3xl border bg-background shadow-sm">
-        <div className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_top,black,transparent_65%)]">
-          <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-primary/20 blur-3xl" />
-          <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
+    <div className={styles.pageWrap}>
+      <div className={styles.wizardShell}>
+        <div className={styles.wizardGlow}>
+          <div className={styles.wizardGlowLeft} />
+          <div className={styles.wizardGlowRight} />
         </div>
 
-        <div className="relative grid gap-0 lg:grid-cols-[360px_1fr]">
-          {/* Left: steps / summary */}
-          <div className="hidden lg:block border-b p-6 lg:border-b-0 lg:border-r">
-            <div className="space-y-2">
-              <div className="text-sm font-semibold text-primary">Affiliate Registration</div>
-              <div className="text-2xl font-bold tracking-tight">Create your store</div>
-              <p className="text-sm text-muted-foreground">
+        <div className={styles.wizardGrid}>
+          {/* Left: sidebar */}
+          <div className={styles.sidebar}>
+            <div className={styles.sidebarIntro}>
+              <div className={styles.sidebarEyebrow}>Affiliate Registration</div>
+              <div className={styles.sidebarTitle}>Create your store</div>
+              <p className={styles.sidebarDesc}>
                 Complete 3 quick steps to generate your affiliate website.
               </p>
             </div>
 
-            <div className="mt-6 space-y-4">
-              <StepPill number={1} label="Personal Info" active={step === 1} done={step > 1} />
-              <StepPill number={2} label="Plan & Domain" active={step === 2} done={step > 2} />
-              <StepPill number={3} label="Address & Password" active={step === 3} done={false} />
+            <div className={styles.sidebarSteps}>
+              <StepPill
+                number={1}
+                label="Personal Info"
+                active={step === 1}
+                done={step > 1}
+              />
+              <StepPill
+                number={2}
+                label="Plan & Domain"
+                active={step === 2}
+                done={step > 2}
+              />
+              <StepPill
+                number={3}
+                label="Address & Password"
+                active={step === 3}
+                done={false}
+              />
             </div>
 
-            <div className="mt-6">
-              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+            <div className={styles.progressWrap}>
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-              <div className="mt-2 text-xs text-muted-foreground">
-                Progress: <span className="font-semibold text-foreground">{progress}%</span>
+
+              <div className={styles.progressMeta}>
+                <span>
+                  Progress:{" "}
+                  <span className={styles.progressValue}>{progress}%</span>
+                </span>
+
                 {affiliateId ? (
-                  <span className="ml-2">
-                    • Affiliate ID: <span className="font-semibold text-foreground">{affiliateId}</span>
+                  <span>
+                    {" "}
+                    • Affiliate ID:{" "}
+                    <span className={styles.progressValue}>{affiliateId}</span>
                   </span>
                 ) : null}
               </div>
             </div>
 
             {selectedPlan && step >= 2 ? (
-              <div className="mt-6 rounded-2xl border bg-muted/30 p-4">
-                <div className="text-xs font-semibold text-muted-foreground">Selected Plan</div>
-                <div className="mt-1 font-semibold">{selectedPlan.name}</div>
-                <div className="text-sm text-muted-foreground">
+              <div className={styles.selectedPlanBox}>
+                <div className={styles.selectedPlanLabel}>Selected Plan</div>
+                <div className={styles.selectedPlanName}>{selectedPlan.name}</div>
+                <div className={styles.selectedPlanPrice}>
                   {money(selectedPlan.fees)} / month
                 </div>
               </div>
@@ -801,443 +858,639 @@ export default function RegisterWizardForm({
           </div>
 
           {/* Right: form */}
-          <div className="p-6 lg:p-8">
+          <div className={styles.formSide}>
             {/* Mobile step indicator */}
-            <div className="mb-4 lg:hidden">
-              <div className="rounded-xl border bg-muted/40 px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold">Affiliate Registration</div>
-                  <div className="text-sm text-muted-foreground">
-                    Step <span className="font-semibold text-foreground">{step}</span> / 3
-                  </div>
+            <div className={styles.mobileStepBox}>
+              <div className={styles.mobileStepHead}>
+                <div className={styles.mobileStepTitle}>Affiliate Registration</div>
+                <div className={styles.mobileStepMeta}>
+                  Step{" "}
+                  <span className={styles.mobileStepMetaStrong}>{step}</span> / 3
                 </div>
-                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
-                </div>
+              </div>
+
+              <div className={styles.mobileProgressBar}>
+                <div
+                  className={styles.mobileProgressFill}
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
 
-            <Card className="border-0 shadow-none bg-transparent">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-xl">{stepTitle}</CardTitle>
-                <CardDescription>
-                  Step <span className="font-semibold">{step}</span> of{" "}
-                  <span className="font-semibold">3</span>
-                </CardDescription>
-              </CardHeader>
+            <div className={styles.formPanel}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.formTitle}>{stepTitle}</h2>
+                <p className={styles.formDesc}>
+                  Step <span className={styles.formStrong}>{step}</span> of{" "}
+                  <span className={styles.formStrong}>3</span>
+                </p>
+              </div>
 
-              <CardContent className="px-0">
-                {serverErr ? <Banner variant="error" title="Error" desc={serverErr} /> : null}
-                {serverMsg ? <div className="mt-4"><Banner variant="success" title="Success" desc={serverMsg} /></div> : null}
+              {serverErr ? (
+                <Banner variant="error" title="Error" desc={serverErr} />
+              ) : null}
 
-                <form onSubmit={(e) => e.preventDefault()} className="mt-6 space-y-6">
-                  {/* STEP 1 */}
-                  {step === 1 ? (
-                    <div className="space-y-6">
-                      <div className="grid gap-5 md:grid-cols-2">
-                        <Field label="First Name" required error={errors.firstname?.message}>
-                          <Input
-                            {...register("firstname", {
-                              required: "First name is required",
-                              minLength: { value: 1, message: "Min 1 character" },
-                              maxLength: { value: 32, message: "Max 32 characters" },
-                            })}
-                            className={cn(errors.firstname ? "border-red-500" : "")}
-                          />
-                        </Field>
+              {serverMsg ? (
+                <div className={styles.bannerSpacing}>
+                  <Banner variant="success" title="Success" desc={serverMsg} />
+                </div>
+              ) : null}
 
-                        <Field label="Last Name" required error={errors.lastname?.message}>
-                          <Input
-                            {...register("lastname", {
-                              required: "Last name is required",
-                              minLength: { value: 1, message: "Min 1 character" },
-                              maxLength: { value: 32, message: "Max 32 characters" },
-                            })}
-                            className={cn(errors.lastname ? "border-red-500" : "")}
-                          />
-                        </Field>
-                      </div>
-
-                      <Field label="Email" required error={errors.email?.message}>
+              <form
+                onSubmit={(e) => e.preventDefault()}
+                className={styles.form}
+              >
+                {/* STEP 1 */}
+                {step === 1 ? (
+                  <div className={styles.sectionStack}>
+                    <div className={styles.twoColGrid}>
+                      <Field
+                        label="First Name"
+                        required
+                        error={errors.firstname?.message}
+                      >
                         <Input
-                          type="email"
-                          {...register("email", {
-                            required: "Email is required",
-                            pattern: {
-                              value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
-                              message: "Please enter a valid email address",
+                          {...register("firstname", {
+                            required: "First name is required",
+                            minLength: {
+                              value: 1,
+                              message: "Min 1 character",
+                            },
+                            maxLength: {
+                              value: 32,
+                              message: "Max 32 characters",
                             },
                           })}
-                          className={cn(errors.email ? "border-red-500" : "")}
+                          className={cn(
+                            styles.inputBase,
+                            errors.firstname ? styles.inputError : ""
+                          )}
                         />
                       </Field>
 
-                      <Field label="Phone / Mobile" required error={errors.telephone?.message} hint="10 digits">
+                      <Field
+                        label="Last Name"
+                        required
+                        error={errors.lastname?.message}
+                      >
                         <Input
-                          inputMode="numeric"
-                          placeholder="10 digit mobile number"
-                          {...register("telephone", {
-                            required: "Phone/Mobile is required",
-                            pattern: { value: /^\d{10}$/, message: "Phone/Mobile must be exactly 10 digits" },
+                          {...register("lastname", {
+                            required: "Last name is required",
+                            minLength: {
+                              value: 1,
+                              message: "Min 1 character",
+                            },
+                            maxLength: {
+                              value: 32,
+                              message: "Max 32 characters",
+                            },
                           })}
-                          onInput={(e) => {
-                            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
-                          }}
-                          className={cn(errors.telephone ? "border-red-500" : "")}
+                          className={cn(
+                            styles.inputBase,
+                            errors.lastname ? styles.inputError : ""
+                          )}
                         />
                       </Field>
                     </div>
-                  ) : null}
 
-                  {/* STEP 2 */}
-                  {step === 2 ? (
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <div className="text-sm font-semibold">
-                          <span className="text-red-500">*</span> Select Your Plan
-                        </div>
-
-                        {plans.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">No plans available right now.</p>
-                        ) : (
-                          <div className="grid gap-3 md:grid-cols-2">
-  {plans.map((p) => {
-    const active = String(selectedPlanId) === String(p.affiliate_plan_id);
-
-    return (
-      <label
-        key={p.affiliate_plan_id}
-        className={cn(
-          "group flex cursor-pointer items-start gap-3 rounded-2xl border p-3 transition",
-          active ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"
-        )}
-      >
-        {/* compact radio */}
-        <input
-          type="radio"
-          value={String(p.affiliate_plan_id)}
-          className="mt-1 h-4 w-4"
-          {...register("affiliate_plan_id", {
-            required: "Please select a plan",
-          })}
-        />
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <div className="truncate text-sm font-semibold">{p.name}</div>
-            <div className="shrink-0 rounded-full border bg-background px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-              {money(p.fees)}/mo
-            </div>
-          </div>
-
-          {p.tag_line ? (
-            <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-              {p.tag_line}
-            </div>
-          ) : null}
-        </div>
-      </label>
-    );
-  })}
-</div>
+                    <Field
+                      label="Email"
+                      required
+                      error={errors.email?.message}
+                    >
+                      <Input
+                        type="email"
+                        {...register("email", {
+                          required: "Email is required",
+                          pattern: {
+                            value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
+                            message: "Please enter a valid email address",
+                          },
+                        })}
+                        className={cn(
+                          styles.inputBase,
+                          errors.email ? styles.inputError : ""
                         )}
+                      />
+                    </Field>
 
-                        {errors.affiliate_plan_id ? (
-                          <p className="text-sm text-red-600">{errors.affiliate_plan_id.message}</p>
-                        ) : null}
+                    <Field
+                      label="Phone / Mobile"
+                      required
+                      error={errors.telephone?.message}
+                      hint="10 digits"
+                    >
+                      <Input
+                        inputMode="numeric"
+                        placeholder="10 digit mobile number"
+                        {...register("telephone", {
+                          required: "Phone/Mobile is required",
+                          pattern: {
+                            value: /^\d{10}$/,
+                            message: "Phone/Mobile must be exactly 10 digits",
+                          },
+                        })}
+                        onInput={(e) => {
+                          e.target.value = e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 10);
+                        }}
+                        className={cn(
+                          styles.inputBase,
+                          errors.telephone ? styles.inputError : ""
+                        )}
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+
+                {/* STEP 2 */}
+                {step === 2 ? (
+                  <div className={styles.sectionStack}>
+                    <div className={styles.sectionStack}>
+                      <div className={styles.sectionLabel}>
+                        <span className={styles.requiredMark}>*</span> Select Your
+                        Plan
                       </div>
 
-                      <Separator />
+                      {plans.length === 0 ? (
+                        <p className={styles.emptyText}>
+                          No plans available right now.
+                        </p>
+                      ) : (
+                        <div className={styles.planGrid}>
+                          {plans.map((p) => {
+                            const active =
+                              String(selectedPlanId) ===
+                              String(p.affiliate_plan_id);
 
-                      <Field label="Business Name" required error={errors.business_name?.message}>
-                        <Input
-                          {...register("business_name", {
-                            required: "Business name is required",
-                            minLength: { value: 3, message: "Min 3 characters" },
-                            maxLength: { value: 32, message: "Max 32 characters" },
+                            return (
+                              <label
+                                key={p.affiliate_plan_id}
+                                className={cn(
+                                  styles.planCard,
+                                  active ? styles.planCardActive : ""
+                                )}
+                              >
+                                <input
+                                  type="radio"
+                                  value={String(p.affiliate_plan_id)}
+                                  className={styles.planRadio}
+                                  {...register("affiliate_plan_id", {
+                                    required: "Please select a plan",
+                                  })}
+                                />
+
+                                <div className={styles.planContent}>
+                                  <div className={styles.planHead}>
+                                    <div className={styles.planName}>{p.name}</div>
+                                    <div className={styles.planPrice}>
+                                      {money(p.fees)}/mo
+                                    </div>
+                                  </div>
+
+                                  {p.tag_line ? (
+                                    <div className={styles.planTagline}>
+                                      {p.tag_line}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </label>
+                            );
                           })}
-                          className={cn(errors.business_name ? "border-red-500" : "")}
-                        />
-                      </Field>
-
-                      <Field label="Website Domain" error={errors.website?.message} hint="without https://www">
-                        <div className="flex">
-                          <div className="flex items-center rounded-l-md border border-r-0 bg-muted px-3 text-sm text-muted-foreground">
-                            https://www.
-                          </div>
-                          <Input
-                            className={cn("rounded-l-none", errors.website ? "border-red-500" : "")}
-                            placeholder="yourdomain.com"
-                            {...register("website", {
-                              validate: (v) => {
-                                if (!v) return true;
-                                if (/\s/.test(v)) return "Website cannot contain spaces";
-                                if (v.startsWith("http://") || v.startsWith("https://") || v.startsWith("www.")) {
-                                  return "Do not include https:// or www";
-                                }
-                                return /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(v) || "Enter a valid domain like yourdomain.com";
-                              },
-                            })}
-                            onBlur={() => {
-                              const v = String(getValues("website") || "").trim();
-                              if (!v) return;
-                              const ok = /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(v) && !/\s/.test(v);
-                              if (ok) checkDomainAvaibilityStatus(v);
-                            }}
-                          />
                         </div>
+                      )}
 
-                        <input type="hidden" {...register("is_customer_own_domain")} />
-                        <input type="hidden" {...register("is_domain_available")} />
-                        <input type="hidden" {...register("is_domain_avaibility_checked")} />
+                      {errors.affiliate_plan_id ? (
+                        <p className={styles.fieldError}>
+                          {errors.affiliate_plan_id.message}
+                        </p>
+                      ) : null}
+                    </div>
 
-                        {domainChecking ? (
-                          <div className="mt-2 text-sm text-muted-foreground">
-                            Checking domain availability...
+                    <Separator className={styles.separator} />
+
+                    <Field
+                      label="Business Name"
+                      required
+                      error={errors.business_name?.message}
+                    >
+                      <Input
+                        {...register("business_name", {
+                          required: "Business name is required",
+                          minLength: {
+                            value: 3,
+                            message: "Min 3 characters",
+                          },
+                          maxLength: {
+                            value: 32,
+                            message: "Max 32 characters",
+                          },
+                        })}
+                        className={cn(
+                          styles.inputBase,
+                          errors.business_name ? styles.inputError : ""
+                        )}
+                      />
+                    </Field>
+
+                    <Field
+                      label="Website Domain"
+                      error={errors.website?.message}
+                      hint="without https://www"
+                    >
+                      <div className={styles.websiteInputWrap}>
+                        <div className={styles.websitePrefix}>https://www.</div>
+
+                        <Input
+                          className={cn(
+                            styles.inputBase,
+                            styles.websiteInput,
+                            errors.website ? styles.inputError : ""
+                          )}
+                          placeholder="yourdomain.com"
+                          {...register("website", {
+                            validate: (v) => {
+                              if (!v) return true;
+                              if (/\s/.test(v))
+                                return "Website cannot contain spaces";
+                              if (
+                                v.startsWith("http://") ||
+                                v.startsWith("https://") ||
+                                v.startsWith("www.")
+                              ) {
+                                return "Do not include https:// or www";
+                              }
+                              return (
+                                /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(v) ||
+                                "Enter a valid domain like yourdomain.com"
+                              );
+                            },
+                          })}
+                          onBlur={() => {
+                            const v = String(getValues("website") || "").trim();
+                            if (!v) return;
+                            const ok =
+                              /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(v) &&
+                              !/\s/.test(v);
+                            if (ok) checkDomainAvaibilityStatus(v);
+                          }}
+                        />
+                      </div>
+
+                      <input
+                        type="hidden"
+                        {...register("is_customer_own_domain")}
+                      />
+                      <input type="hidden" {...register("is_domain_available")} />
+                      <input
+                        type="hidden"
+                        {...register("is_domain_avaibility_checked")}
+                      />
+
+                      {domainChecking ? (
+                        <div className={styles.helperText}>
+                          Checking domain availability...
+                        </div>
+                      ) : null}
+
+                      {domainInfo?.error && domainInfo?.domain_not_available ? (
+                        <div className={styles.domainErrorBox}>
+                          {domainInfo.error}
+                        </div>
+                      ) : null}
+
+                      {domainInfo?.success && domainInfo?.domain_found ? (
+                        <div className={styles.domainSuccessBox}>
+                          {domainInfo.domain_found}
+                        </div>
+                      ) : null}
+
+                      {Array.isArray(domainInfo?.domain_suggestions) &&
+                      domainInfo.domain_suggestions.length > 0 ? (
+                        <div className={styles.suggestionWrap}>
+                          <div className={styles.checkboxRow}>
+                            <input
+                              id="input-business-own-domain"
+                              type="checkbox"
+                              checked={ownDomainChecked}
+                              onChange={(e) =>
+                                onOwnDomainToggle(e.target.checked)
+                              }
+                              className={styles.checkbox}
+                            />
+                            <Label
+                              htmlFor="input-business-own-domain"
+                              className={styles.checkboxLabel}
+                            >
+                              I already own this domain
+                            </Label>
                           </div>
-                        ) : null}
 
-                        {domainInfo?.error && domainInfo?.domain_not_available ? (
-                          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                            {domainInfo.error}
-                          </div>
-                        ) : null}
+                          <div className={styles.sectionLabel}>Suggestions</div>
 
-                        {domainInfo?.success && domainInfo?.domain_found ? (
-                          <div className="mt-3 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                            {domainInfo.domain_found}
-                          </div>
-                        ) : null}
-
-                        {Array.isArray(domainInfo?.domain_suggestions) && domainInfo.domain_suggestions.length > 0 ? (
-                          <div className="mt-4 space-y-3">
-                            <div className="flex items-center gap-2">
-                              <input
-                                id="input-business-own-domain"
-                                type="checkbox"
-                                checked={ownDomainChecked}
-                                onChange={(e) => onOwnDomainToggle(e.target.checked)}
-                                className="h-4 w-4 rounded border-border"
-                              />
-                              <Label htmlFor="input-business-own-domain" className="font-semibold">
-                                I already own this domain
-                              </Label>
-                            </div>
-
-                            <div className="text-sm font-semibold">Suggestions</div>
-                            <div className="flex flex-wrap gap-2">
-                              {domainInfo.domain_suggestions.slice(0, 8).map((d) => (
+                          <div className={styles.suggestionList}>
+                            {domainInfo.domain_suggestions
+                              .slice(0, 8)
+                              .map((d) => (
                                 <button
                                   type="button"
                                   key={d}
                                   onClick={() => chooseSuggestedDomain(d)}
-                                  className="rounded-full border border-border bg-background px-3 py-1 text-sm hover:bg-muted"
+                                  className={styles.suggestionBtn}
                                 >
                                   {d}
                                 </button>
                               ))}
-                            </div>
                           </div>
-                        ) : null}
+                        </div>
+                      ) : null}
 
-                        {!canProceedStep2 ? (
-                          <p className="mt-3 text-sm text-muted-foreground">
-                            Please check your domain availability (or confirm you own the domain) to continue.
+                      {!canProceedStep2 ? (
+                        <p className={styles.helperText}>
+                          Please check your domain availability or confirm you own
+                          the domain to continue.
+                        </p>
+                      ) : null}
+                    </Field>
+                  </div>
+                ) : null}
+
+                {/* STEP 3 */}
+                {step === 3 ? (
+                  <div className={styles.sectionStack}>
+                    <Field
+                      label="Address 1"
+                      required
+                      error={errors.address_1?.message}
+                    >
+                      <Input
+                        {...register("address_1", {
+                          required: "Address 1 is required",
+                        })}
+                        className={cn(
+                          styles.inputBase,
+                          errors.address_1 ? styles.inputError : ""
+                        )}
+                      />
+                    </Field>
+
+                    <Field
+                      label="Address 2"
+                      error={errors.address_2?.message}
+                    >
+                      <Input
+                        {...register("address_2")}
+                        className={styles.inputBase}
+                      />
+                    </Field>
+
+                    <div className={styles.twoColGrid}>
+                      <Field
+                        label="City"
+                        required
+                        error={errors.city?.message}
+                      >
+                        <Input
+                          {...register("city", {
+                            required: "City is required",
+                          })}
+                          className={cn(
+                            styles.inputBase,
+                            errors.city ? styles.inputError : ""
+                          )}
+                        />
+                      </Field>
+
+                      <Field
+                        label="Zip Code"
+                        required
+                        error={errors.postcode?.message}
+                      >
+                        <Input
+                          {...register("postcode", {
+                            required: "Zip code is required",
+                          })}
+                          className={cn(
+                            styles.inputBase,
+                            errors.postcode ? styles.inputError : ""
+                          )}
+                        />
+                      </Field>
+                    </div>
+
+                    <div className={styles.twoColGrid}>
+                      <Field
+                        label="Country"
+                        required
+                        error={errors.country_id?.message}
+                      >
+                        <Select
+                          value={String(watch("country_id") || "")}
+                          onChange={(e) =>
+                            setValue("country_id", e.target.value, {
+                              shouldValidate: true,
+                            })
+                          }
+                          error={!!errors.country_id}
+                        >
+                          <option value="">--- Please Select ---</option>
+                          {countries.map((c) => (
+                            <option
+                              key={c.country_id}
+                              value={String(c.country_id)}
+                            >
+                              {c.name}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+
+                      <Field
+                        label="Region / State"
+                        required
+                        error={errors.zone_id?.message}
+                      >
+                        <Select
+                          value={String(watch("zone_id") || "")}
+                          onChange={(e) =>
+                            setValue("zone_id", e.target.value, {
+                              shouldValidate: true,
+                            })
+                          }
+                          disabled={!selectedCountryId || zonesLoading}
+                          error={!!errors.zone_id}
+                        >
+                          <option value="">
+                            {zonesLoading ? "Loading..." : "--- Please Select ---"}
+                          </option>
+                          {zones.map((z) => (
+                            <option key={z.zone_id} value={String(z.zone_id)}>
+                              {z.name}
+                            </option>
+                          ))}
+                        </Select>
+
+                        {!zonesLoading &&
+                        selectedCountryId &&
+                        zones.length === 0 ? (
+                          <p className={styles.helperText}>
+                            No regions/states available for selected country.
                           </p>
                         ) : null}
                       </Field>
                     </div>
-                  ) : null}
 
-                  {/* STEP 3 */}
-                  {step === 3 ? (
-                    <div className="space-y-6">
-                      <Field label="Address 1" required error={errors.address_1?.message}>
+                    <Separator className={styles.separator} />
+
+                    <div className={styles.twoColGrid}>
+                      <Field
+                        label="Password"
+                        required
+                        error={errors.password?.message}
+                      >
                         <Input
-                          {...register("address_1", { required: "Address 1 is required" })}
-                          className={cn(errors.address_1 ? "border-red-500" : "")}
+                          type="password"
+                          {...register("password", {
+                            required: "Password is required",
+                            minLength: {
+                              value: 6,
+                              message: "Minimum 6 characters",
+                            },
+                            maxLength: {
+                              value: 20,
+                              message: "Maximum 20 characters",
+                            },
+                          })}
+                          className={cn(
+                            styles.inputBase,
+                            errors.password ? styles.inputError : ""
+                          )}
                         />
                       </Field>
 
-                      <Field label="Address 2" error={errors.address_2?.message}>
-                        <Input {...register("address_2")} />
+                      <Field
+                        label="Password Confirm"
+                        required
+                        error={errors.confirm?.message}
+                      >
+                        <Input
+                          type="password"
+                          {...register("confirm", {
+                            required: "Confirm password is required",
+                            validate: (v) =>
+                              v === getValues("password") ||
+                              "Passwords do not match",
+                          })}
+                          className={cn(
+                            styles.inputBase,
+                            errors.confirm ? styles.inputError : ""
+                          )}
+                        />
                       </Field>
+                    </div>
 
-                      <div className="grid gap-5 md:grid-cols-2">
-                        <Field label="City" required error={errors.city?.message}>
-                          <Input
-                            {...register("city", { required: "City is required" })}
-                            className={cn(errors.city ? "border-red-500" : "")}
-                          />
-                        </Field>
+                    <div className={styles.termsBox}>
+                      <div className={styles.termsRow}>
+                        <input
+                          id="agree_terms"
+                          type="checkbox"
+                          checked={!!watch("agree_terms")}
+                          onChange={(e) =>
+                            setValue("agree_terms", e.target.checked, {
+                              shouldValidate: true,
+                            })
+                          }
+                          className={styles.checkbox}
+                        />
 
-                        <Field label="Zip Code" required error={errors.postcode?.message}>
-                          <Input
-                            {...register("postcode", { required: "Zip code is required" })}
-                            className={cn(errors.postcode ? "border-red-500" : "")}
-                          />
-                        </Field>
-                      </div>
-
-                      <div className="grid gap-5 md:grid-cols-2">
-                        <Field label="Country" required error={errors.country_id?.message}>
-                          <Select
-                            value={String(watch("country_id") || "")}
-                            onChange={(e) =>
-                              setValue("country_id", e.target.value, { shouldValidate: true })
-                            }
-                            error={!!errors.country_id}
+                        <div className={styles.termsContent}>
+                          <Label
+                            htmlFor="agree_terms"
+                            className={styles.termsLabel}
                           >
-                            <option value="">--- Please Select ---</option>
-                            {countries.map((c) => (
-                              <option key={c.country_id} value={String(c.country_id)}>
-                                {c.name}
-                              </option>
-                            ))}
-                          </Select>
-                        </Field>
+                            I agree to the{" "}
+                            <button
+                              type="button"
+                              className={styles.termsLink}
+                              onClick={handleOpenTerms}
+                            >
+                              Terms &amp; Conditions
+                            </button>
+                          </Label>
 
-                        <Field label="Region / State" required error={errors.zone_id?.message}>
-                          <Select
-                            value={String(watch("zone_id") || "")}
-                            onChange={(e) =>
-                              setValue("zone_id", e.target.value, { shouldValidate: true })
-                            }
-                            disabled={!selectedCountryId || zonesLoading}
-                            error={!!errors.zone_id}
-                          >
-                            <option value="">
-                              {zonesLoading ? "Loading..." : "--- Please Select ---"}
-                            </option>
-                            {zones.map((z) => (
-                              <option key={z.zone_id} value={String(z.zone_id)}>
-                                {z.name}
-                              </option>
-                            ))}
-                          </Select>
-
-                          {!zonesLoading && selectedCountryId && zones.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                              No regions/states available for selected country.
+                          {errors.agree_terms ? (
+                            <p className={styles.fieldError}>
+                              {errors.agree_terms.message}
                             </p>
                           ) : null}
-                        </Field>
-                      </div>
-
-                      <Separator />
-
-                      <div className="grid gap-5 md:grid-cols-2">
-                        <Field label="Password" required error={errors.password?.message}>
-                          <Input
-                            type="password"
-                            {...register("password", {
-                              required: "Password is required",
-                              minLength: { value: 6, message: "Minimum 6 characters" },
-                              maxLength: { value: 20, message: "Maximum 20 characters" },
-                            })}
-                            className={cn(errors.password ? "border-red-500" : "")}
-                          />
-                        </Field>
-
-                        <Field label="Password Confirm" required error={errors.confirm?.message}>
-                          <Input
-                            type="password"
-                            {...register("confirm", {
-                              required: "Confirm password is required",
-                              validate: (v) => v === getValues("password") || "Passwords do not match",
-                            })}
-                            className={cn(errors.confirm ? "border-red-500" : "")}
-                          />
-                        </Field>
-                      </div>
-
-                      <div className="rounded-2xl border bg-muted/30 p-4">
-                        <div className="flex items-start gap-3">
-                          <input
-                            id="agree_terms"
-                            type="checkbox"
-                            checked={!!watch("agree_terms")}
-                            onChange={(e) =>
-                              setValue("agree_terms", e.target.checked, { shouldValidate: true })
-                            }
-                            className="mt-1 h-4 w-4 rounded border-border"
-                          />
-                          <div className="space-y-1">
-                            <Label htmlFor="agree_terms" className="leading-5">
-                              I agree to the{" "}
-                              <button
-                                type="button"
-                                className="underline underline-offset-4"
-                                onClick={handleOpenTerms}
-                              >
-                                Terms &amp; Conditions
-                              </button>
-                            </Label>
-                            {errors.agree_terms ? (
-                              <p className="text-sm text-red-600">{errors.agree_terms.message}</p>
-                            ) : null}
-                          </div>
                         </div>
                       </div>
                     </div>
-                  ) : null}
-
-                  {/* Footer (premium sticky-like) */}
-                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={() => {
-                        setServerErr(null);
-                        setServerMsg(null);
-                        setStep((s) => Math.max(1, s - 1));
-                      }}
-                      disabled={step === 1 || isSubmitting}
-                    >
-                      ← Back
-                    </Button>
-
-                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                      {step === 1 ? (
-                        <Button type="button" onClick={onNextStep1} disabled={isSubmitting} className="w-full sm:w-auto">
-                          Continue →
-                        </Button>
-                      ) : null}
-
-                      {step === 2 ? (
-                        <Button
-                          type="button"
-                          onClick={onNextStep2}
-                          disabled={isSubmitting || !canProceedStep2}
-                          className="w-full sm:w-auto"
-                        >
-                          {domainChecking ? "Checking..." : "Continue →"}
-                        </Button>
-                      ) : null}
-
-                      {step === 3 ? (
-                        <Button type="button" onClick={onFinishStep3} disabled={isSubmitting} className="w-full sm:w-auto">
-                          Finish &amp; Go To Payment →
-                        </Button>
-                      ) : null}
-                    </div>
                   </div>
+                ) : null}
 
-                  {/* small helper (optional) */}
-                  <p className="text-xs text-muted-foreground">
-                    Your progress is saved automatically. You can refresh and continue anytime.
-                  </p>
-                </form>
-              </CardContent>
-            </Card>
+                {/* Footer */}
+                <div className={styles.footerActions}>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => {
+                      setServerErr(null);
+                      setServerMsg(null);
+                      setStep((s) => Math.max(1, s - 1));
+                    }}
+                    disabled={step === 1 || isSubmitting}
+                    className={styles.backBtn}
+                  >
+                    ← Back
+                  </Button>
+
+                  <div className={styles.forwardActions}>
+                    {step === 1 ? (
+                      <Button
+                        type="button"
+                        onClick={onNextStep1}
+                        disabled={isSubmitting}
+                        className={styles.primaryBtn}
+                      >
+                        Continue →
+                      </Button>
+                    ) : null}
+
+                    {step === 2 ? (
+                      <Button
+                        type="button"
+                        onClick={onNextStep2}
+                        disabled={isSubmitting || !canProceedStep2}
+                        className={styles.primaryBtn}
+                      >
+                        {domainChecking ? "Checking..." : "Continue →"}
+                      </Button>
+                    ) : null}
+
+                    {step === 3 ? (
+                      <Button
+                        type="button"
+                        onClick={onFinishStep3}
+                        disabled={isSubmitting}
+                        className={styles.primaryBtn}
+                      >
+                        Finish &amp; Go To Payment →
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+
+                <p className={styles.bottomHelp}>
+                  Your progress is saved automatically. You can refresh and
+                  continue anytime.
+                </p>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* If you want a plain "clear wizard" button for testing */}
-      {/* <div className="mt-4">
-        <Button variant="outline" onClick={() => clearWizard()}>Clear wizard cache</Button>
-      </div> */}
     </div>
   );
 }

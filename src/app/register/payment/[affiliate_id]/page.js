@@ -1,22 +1,15 @@
 import PaymentClient from "./payment-client";
 import { getAffiliate } from "@/lib/affiliate";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import styles from "./page.module.css";
 
 export const metadata = {
   title: "Affiliate Website Program Payment",
   description:
-    "Website Affiliate Program at Ladies Church Suits,Earn money by selling church attire,wholesale church suits,Free Website Program,Buid your website in free",
+    "Website Affiliate Program at Ladies Church Suits, earn money by selling church attire and activate your affiliate website subscription.",
 };
 
 export default async function PaymentPage({ params }) {
-  // ✅ Next.js: params can be a Promise
   const { affiliate_id } = await params;
 
   const affiliateId = Number(affiliate_id);
@@ -35,106 +28,90 @@ export default async function PaymentPage({ params }) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 lg:py-12">
-      {/* Premium Header */}
-      <div className="relative overflow-hidden rounded-3xl border bg-background p-6 shadow-sm lg:p-10">
-        <div className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_top,black,transparent_65%)]">
-          <div className="absolute -left-28 -top-28 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-          <div className="absolute -right-28 -top-28 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
+    <main className={styles.page}>
+      {/* Header */}
+      <section className={styles.hero}>
+        <div className={styles.heroGlow}>
+          <div className={styles.heroGlowLeft} />
+          <div className={styles.heroGlowRight} />
         </div>
 
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full border bg-muted/40 px-3 py-1 text-xs font-semibold text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-primary" />
-            Final step
-          </div>
+        <div className={styles.heroInner}>
+          <div className={styles.badge}>Final Step</div>
 
-          <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-            Complete Subscription Payment
-          </h1>
+          <h1 className={styles.title}>Complete Subscription Payment</h1>
 
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
+          <p className={styles.desc}>
             Review your store details and activate your subscription securely.
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
-      <div className="mt-6 grid gap-6 lg:mt-8 lg:grid-cols-5">
-        {/* Left: Store Details */}
-        <div className="lg:col-span-2">
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-base">Store Details</CardTitle>
-              <CardDescription>
-                Please confirm the information below before paying.
-              </CardDescription>
-            </CardHeader>
+      <section className={styles.contentGrid}>
+        {/* Left */}
+        <aside className={styles.detailsCard}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Store Details</h2>
+            <p className={styles.cardDesc}>
+              Please confirm the information below before paying.
+            </p>
+          </div>
 
-            <CardContent className="space-y-4">
-              <div className="rounded-xl border bg-muted/30 p-4">
-                <div className="text-xs font-semibold text-muted-foreground">
-                  Store Name
-                </div>
-                <div className="mt-1 font-semibold">
-                  {affiliate_info?.store_name || "-"}
+          <div className={styles.cardBody}>
+            <div className={styles.infoBox}>
+              <div className={styles.infoLabel}>Store Name</div>
+              <div className={styles.infoValue}>
+                {affiliate_info?.store_name || "-"}
+              </div>
+            </div>
+
+            <div className={styles.infoGrid}>
+              <div className={styles.infoBox}>
+                <div className={styles.infoLabel}>Email</div>
+                <div className={styles.infoValueSmall}>
+                  {affiliate_info?.email ? (
+                    <a
+                      className={styles.inlineLink}
+                      href={`mailto:${affiliate_info.email}`}
+                    >
+                      {affiliate_info.email}
+                    </a>
+                  ) : (
+                    "-"
+                  )}
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border bg-muted/30 p-4">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Email
-                  </div>
-                  <div className="mt-1 text-sm font-medium">
-                    {affiliate_info?.email ? (
-                      <a
-                        className="underline underline-offset-4"
-                        href={`mailto:${affiliate_info.email}`}
-                      >
-                        {affiliate_info.email}
-                      </a>
-                    ) : (
-                      "-"
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-xl border bg-muted/30 p-4">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Phone / Mobile
-                  </div>
-                  <div className="mt-1 text-sm font-medium">
-                    {telephone ? (
-                      <a
-                        className="underline underline-offset-4"
-                        href={`tel:+1${telephone}`}
-                      >
-                        {affiliate_info?.telephone}
-                      </a>
-                    ) : (
-                      "-"
-                    )}
-                  </div>
+              <div className={styles.infoBox}>
+                <div className={styles.infoLabel}>Phone / Mobile</div>
+                <div className={styles.infoValueSmall}>
+                  {telephone ? (
+                    <a className={styles.inlineLink} href={`tel:+1${telephone}`}>
+                      {affiliate_info?.telephone}
+                    </a>
+                  ) : (
+                    "-"
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="rounded-xl border bg-primary/5 p-4">
-                <div className="text-sm font-semibold">Secure Payment</div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Payments are processed by Stripe. Your card details are never
-                  stored on our server.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <div className={styles.noticeBox}>
+              <div className={styles.noticeTitle}>Secure Payment</div>
+              <p className={styles.noticeText}>
+                Payments are processed by Stripe. Your card details are never
+                stored on our server.
+              </p>
+            </div>
+          </div>
+        </aside>
 
-        {/* Right: Payment */}
-        <div className="lg:col-span-3">
+        {/* Right */}
+        <div className={styles.paymentWrap}>
           <PaymentClient affiliateId={affiliateId} />
         </div>
-      </div>
+      </section>
     </main>
   );
 }

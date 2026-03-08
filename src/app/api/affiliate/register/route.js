@@ -870,12 +870,12 @@ export async function POST(req) {
     // --------------------------------------------
     // NOW RUN YOUR ORIGINAL "heavy" setup
     // --------------------------------------------
-    const firstname = dbEscape(aff.firstname || "");
-    const lastname = dbEscape(aff.lastname || "");
-    const email = dbEscape(String(aff.email || "")).toLowerCase();
-    const telephone = dbEscape(aff.telephone || "");
-    const business_name = dbEscape(aff.store_name || "");
-    const website = dbEscape(aff.website || "");
+    const firstname = dbEscape(affiliate.firstname || "");
+    const lastname = dbEscape(affiliate.lastname || "");
+    const email = dbEscape(String(affiliate.email || "")).toLowerCase();
+    const telephone = dbEscape(affiliate.telephone || "");
+    const business_name = dbEscape(affiliate.store_name || "");
+    const website = dbEscape(affiliate.website || "");
 
     // 1) Create affiliate_user
     const username = email;

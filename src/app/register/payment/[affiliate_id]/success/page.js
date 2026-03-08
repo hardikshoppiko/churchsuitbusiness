@@ -3,10 +3,11 @@ import Link from "next/link";
 import { money, formatDate } from "@/lib/db-utils";
 import { cn } from "@/lib/utils";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+
+import SuccessClient from "./success-client";
+import styles from "./page.module.css";
 
 export const metadata = {
   title: "Payment Successful | Subscription Activated",
@@ -38,82 +39,110 @@ function IconBadge({ tone = "success" }) {
   return (
     <div
       className={cn(
-        "flex h-12 w-12 items-center justify-center rounded-2xl border",
-        isSuccess
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-red-200 bg-red-50 text-red-700"
+        styles.iconBadge,
+        isSuccess ? styles.iconBadgeSuccess : styles.iconBadgeDanger
       )}
       aria-hidden="true"
     >
-      <i className={cn("fa-solid text-xl", isSuccess ? "fa-circle-check" : "fa-circle-xmark")} />
+      <i
+        className={cn(
+          "fa-solid",
+          styles.iconBadgeIcon,
+          isSuccess ? "fa-circle-check" : "fa-circle-xmark"
+        )}
+      />
     </div>
   );
 }
 
 function InfoRow({ label, value }) {
   return (
-    <div className="space-y-1">
-      <div className="text-xs font-medium text-muted-foreground">{label}</div>
-      <div className="text-sm font-semibold break-words">{value ?? "-"}</div>
+    <div className={styles.infoRow}>
+      <div className={styles.infoLabel}>{label}</div>
+      <div className={styles.infoValue}>{value ?? "-"}</div>
+    </div>
+  );
+}
+
+function MobileActionButtons() {
+  return (
+    <div className={styles.mobileActions}>
+      <Button className={styles.primaryBtnMobile} asChild>
+        <Link href="/account" className="text-decoration-none text-white">
+          Go to Dashboard
+        </Link>
+      </Button>
+
+      <Button className={styles.secondaryBtnMobile} variant="outline" asChild>
+        <Link href="/" className="text-decoration-none">
+          Back to Home
+        </Link>
+      </Button>
     </div>
   );
 }
 
 export default async function PaymentSuccessPage({ params, searchParams }) {
-  // ✅ params in Next.js can be a Promise sometimes
   const { affiliate_id } = await params;
+  const resolvedSearchParams = await searchParams;
 
   if (!affiliate_id) {
     return (
-      <main className="mx-auto w-full max-w-4xl px-4 py-10">
-        <Card className="rounded-2xl">
-          <CardHeader>
-            <CardTitle>Invalid URL</CardTitle>
-            <CardDescription>Affiliate id is missing.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href="/">Go Home</Link>
+      <main className={styles.pageWrap}>
+        <div className={styles.simpleCard}>
+          <div className={styles.simpleCardHeader}>
+            <h1 className={styles.simpleCardTitle}>Invalid URL</h1>
+            <p className={styles.simpleCardDesc}>Affiliate id is missing.</p>
+          </div>
+
+          <div className={styles.simpleCardBody}>
+            <Button className={styles.primaryBtn} asChild>
+              <Link href="/" className="text-decoration-none text-white">
+                Go Home
+              </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
     );
   }
 
-  // ✅ In App Router, searchParams is an object (no need await)
-  const redirectStatus = searchParams?.redirect_status; // "succeeded" | "failed"
-  let paymentIntent = searchParams?.payment_intent || "";
+  const redirectStatus = resolvedSearchParams?.redirect_status;
+  let paymentIntent = resolvedSearchParams?.payment_intent || "";
 
-  // If Stripe redirect says failed
   if (redirectStatus && redirectStatus !== "succeeded") {
     return (
-      <main className="mx-auto w-full max-w-4xl px-4 py-10">
-        <Card className="rounded-2xl">
-          <CardHeader className="space-y-4">
-            <div className="flex items-start gap-4">
-              <IconBadge tone="danger" />
-              <div className="space-y-1">
-                <CardTitle className="text-xl">Payment not completed</CardTitle>
-                <CardDescription>
-                  Your payment did not go through. Please try again.
-                </CardDescription>
-              </div>
+      <main className={styles.pageWrap}>
+        <div className={styles.simpleCard}>
+          <div className={styles.failedHeader}>
+            <IconBadge tone="danger" />
+            <div>
+              <h1 className={styles.simpleCardTitle}>Payment not completed</h1>
+              <p className={styles.simpleCardDesc}>
+                Your payment did not go through. Please try again.
+              </p>
             </div>
-          </CardHeader>
+          </div>
 
-          <CardContent className="space-y-4">
-            <Separator />
-            <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link href={`/register/payment/${affiliate_id}`}>Retry Payment</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/">Go Home</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <div className={styles.divider} />
+
+          <div className={styles.simpleCardBodyActions}>
+            <Button className={styles.primaryBtn} asChild>
+              <Link
+                href={`/register/payment/${affiliate_id}`}
+                className="text-decoration-none text-white"
+              >
+                Retry Payment
+              </Link>
+            </Button>
+
+            <Button className={styles.secondaryBtn} variant="outline" asChild>
+              <Link href="/" className="text-decoration-none">
+                Go Home
+              </Link>
+            </Button>
+          </div>
+        </div>
       </main>
     );
   }
@@ -122,21 +151,30 @@ export default async function PaymentSuccessPage({ params, searchParams }) {
 
   if (info?.error) {
     return (
-      <main className="mx-auto w-full max-w-4xl px-4 py-10">
-        <Card className="rounded-2xl">
-          <CardHeader className="space-y-2">
-            <CardTitle>Couldn’t load payment info</CardTitle>
-            <CardDescription>{info.error}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href={`/register/payment/${affiliate_id}`}>Retry Payment</Link>
+      <main className={styles.pageWrap}>
+        <div className={styles.simpleCard}>
+          <div className={styles.simpleCardHeader}>
+            <h1 className={styles.simpleCardTitle}>Couldn’t load payment info</h1>
+            <p className={styles.simpleCardDesc}>{info.error}</p>
+          </div>
+
+          <div className={styles.simpleCardBodyActions}>
+            <Button className={styles.primaryBtn} asChild>
+              <Link
+                href={`/register/payment/${affiliate_id}`}
+                className="text-decoration-none text-white"
+              >
+                Retry Payment
+              </Link>
             </Button>
-            <Button variant="outline" asChild>
-              <Link href="/">Go Home</Link>
+
+            <Button className={styles.secondaryBtn} variant="outline" asChild>
+              <Link href="/" className="text-decoration-none">
+                Go Home
+              </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
     );
   }
@@ -144,120 +182,169 @@ export default async function PaymentSuccessPage({ params, searchParams }) {
   const aff = info.affiliate;
   const pay = info.latest_payment;
 
-  const start_date = formatDate(aff.start_date);
-  const end_date = formatDate(aff.end_date);
+  const start_date = aff?.start_date ? formatDate(aff.start_date) : "";
+  const end_date = aff?.end_date ? formatDate(aff.end_date) : "";
 
   if (!paymentIntent) paymentIntent = aff?.stripe_payment_intent_id || "";
 
-  const storeName = aff?.store_name || aff?.business_name || `Affiliate #${aff?.affiliate_id || affiliate_id}`;
+  const storeName =
+    aff?.store_name ||
+    aff?.business_name ||
+    `Affiliate #${aff?.affiliate_id || affiliate_id}`;
+
+  const isSyncing =
+    !pay ||
+    !pay?.amount ||
+    !pay?.invoice_number ||
+    !pay?.start_date ||
+    !pay?.end_date;
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10">
-      {/* Header */}
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <IconBadge tone="success" />
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">Payment Successful</h1>
-              <Badge className="rounded-full text-white" variant="secondary">
-                Subscription Active
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Your subscription is active now. You can access your dashboard and start using your account.
-            </p>
-          </div>
+    <main className={styles.pageWrap}>
+      {/* Hero */}
+      <section className={styles.hero}>
+        <div className={styles.heroGlow}>
+          <div className={styles.heroGlowLeft} />
+          <div className={styles.heroGlowRight} />
         </div>
 
-        <div className="hidden md:flex items-center gap-2">
-          <Button asChild>
-            <Link href="/account" className="text-decoration-none text-white">Go to Dashboard</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/" className="text-decoration-none text-dark">Back to Home</Link>
-          </Button>
-        </div>
-      </div>
+        <div className={styles.heroInner}>
+          <div className={styles.heroTop}>
+            <div className={styles.heroLeft}>
+              <IconBadge tone="success" />
 
-      {/* Body */}
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        {/* Details Card */}
-        <Card className="rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-base">Subscription Details</CardTitle>
-            <CardDescription>
-              Confirm your store, billing period, and payment reference.
-            </CardDescription>
-          </CardHeader>
+              <div className={styles.heroCopy}>
+                <div className={styles.heroTitleRow}>
+                  <h1 className={styles.heroTitle}>Payment Successful</h1>
 
-          <CardContent className="space-y-5">
-            <div className="rounded-2xl border bg-muted/30 p-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <InfoRow label="Store" value={storeName} />
-                <InfoRow label="Email" value={aff?.email || "-"} />
-                <InfoRow label="Amount" value={pay ? money(pay.amount) : "-"} />
-                <InfoRow label="Invoice" value={pay?.invoice_number || "-"} />
-                <InfoRow
-                  label="Billing Period"
-                  value={
-                    pay?.start_date
-                      ? `${String(start_date)} → ${String(end_date)}`
-                      : "-"
-                  }
-                />
-                <InfoRow label="Payment Intent" value={paymentIntent || "-"} />
+                  <Badge className={styles.heroBadge} variant="secondary">
+                    {isSyncing ? "Activation in Progress" : "Subscription Active"}
+                  </Badge>
+                </div>
+
+                <p className={styles.heroDesc}>
+                  {isSyncing
+                    ? "Your payment has been received. We are activating your subscription and preparing your billing details."
+                    : "Your subscription is active now. You can access your dashboard and start using your account."}
+                </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 md:hidden">
-              <Button className="w-full sm:w-auto" asChild>
-                <Link href="/account">Go to Dashboard</Link>
+            <div className={styles.heroActions}>
+              <Button className={styles.primaryBtn} asChild>
+                <Link href="/account" className="text-decoration-none text-white">
+                  Go to Dashboard
+                </Link>
               </Button>
-              <Button className="w-full sm:w-auto" variant="outline" asChild>
-                <Link href="/">Back to Home</Link>
+
+              <Button className={styles.secondaryBtn} variant="outline" asChild>
+                <Link href="/" className="text-decoration-none">
+                  Back to Home
+                </Link>
               </Button>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <p className="text-xs text-muted-foreground">
-              Need help? Contact support.
+      {/* Body */}
+      <section className={styles.contentGrid}>
+        {/* Details */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Subscription Details</h2>
+            <p className={styles.cardDesc}>
+              Confirm your store, billing period, and payment reference.
             </p>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Next steps card */}
-        <Card className="rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-base">Next Steps</CardTitle>
-            <CardDescription>Recommended actions after activation.</CardDescription>
-          </CardHeader>
+          <div className={styles.cardBody}>
+            <div className={styles.summaryBox}>
+              {isSyncing ? (
+                <div className={styles.pendingWrap}>
+                  <div className={styles.pendingTitle}>
+                    Subscription activation in progress
+                  </div>
 
-          <CardContent className="space-y-4">
-            <div className="rounded-2xl border p-4">
-              <div className="text-sm font-semibold">1) Login & open dashboard</div>
-              <p className="mt-1 text-sm text-muted-foreground">
+                  <p className={styles.pendingText}>
+                    Your payment was successful. We are now preparing your invoice
+                    and billing details.
+                  </p>
+
+                  <div className={styles.pendingGrid}>
+                    <InfoRow label="Store" value={storeName} />
+                    <InfoRow label="Email" value={aff?.email || "-"} />
+                    <InfoRow label="Payment Intent" value={paymentIntent || "-"} />
+                    <InfoRow label="Status" value="Processing..." />
+                  </div>
+
+                  <SuccessClient affiliateId={affiliate_id} />
+                </div>
+              ) : (
+                <div className={styles.summaryGrid}>
+                  <InfoRow label="Store" value={storeName} />
+                  <InfoRow label="Email" value={aff?.email || "-"} />
+                  <InfoRow label="Amount" value={pay ? money(pay.amount) : "-"} />
+                  <InfoRow label="Invoice" value={pay?.invoice_number || "-"} />
+                  <InfoRow
+                    label="Billing Period"
+                    value={
+                      pay?.start_date
+                        ? `${String(start_date)} → ${String(end_date)}`
+                        : "-"
+                    }
+                  />
+                  <InfoRow label="Payment Intent" value={paymentIntent || "-"} />
+                </div>
+              )}
+            </div>
+
+            <MobileActionButtons />
+
+            <p className={styles.helpText}>Need help? Contact support.</p>
+          </div>
+        </div>
+
+        {/* Next steps */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Next Steps</h2>
+            <p className={styles.cardDesc}>
+              Recommended actions after activation.
+            </p>
+          </div>
+
+          <div className={styles.cardBody}>
+            <div className={styles.stepBox}>
+              <div className={styles.stepTitle}>1) Login &amp; open dashboard</div>
+              <p className={styles.stepText}>
                 Manage your store settings and start your onboarding.
               </p>
             </div>
 
-            <div className="rounded-2xl border p-4">
-              <div className="text-sm font-semibold">2) Verify your details</div>
-              <p className="mt-1 text-sm text-muted-foreground">
+            <div className={styles.stepBox}>
+              <div className={styles.stepTitle}>2) Verify your details</div>
+              <p className={styles.stepText}>
                 Confirm email, phone, and store name for billing and notifications.
               </p>
             </div>
 
-            <Separator />
+            <div className={styles.divider} />
 
-            <Button className="w-full" asChild>
-              <Link href="/account" className="text-white text-decoration-none">Continue to Dashboard</Link>
+            <Button className={styles.primaryBtnFull} asChild>
+              <Link href="/account" className="text-decoration-none text-white">
+                Continue to Dashboard
+              </Link>
             </Button>
-            <Button className="w-full" variant="outline" asChild>
-              <Link href="/" className="text-decoration-none text-dark">Return to Home</Link>
+
+            <Button className={styles.secondaryBtnFull} variant="outline" asChild>
+              <Link href="/" className="text-decoration-none">
+                Return to Home
+              </Link>
             </Button>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

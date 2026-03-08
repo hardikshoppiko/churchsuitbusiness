@@ -9,16 +9,13 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+import styles from "./payment-client.module.css";
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+);
 
 function CheckoutForm({ affiliateId }) {
   const stripe = useStripe();
@@ -50,24 +47,24 @@ function CheckoutForm({ affiliateId }) {
   }
 
   return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="text-base">Payment</CardTitle>
-        <CardDescription>
-          Choose your payment method and confirm.
-        </CardDescription>
-      </CardHeader>
+    <div className={styles.paymentCard}>
+      <div className={styles.cardHeader}>
+        <h2 className={styles.cardTitle}>Payment</h2>
+        <p className={styles.cardDesc}>
+          Choose your payment method and confirm your subscription.
+        </p>
+      </div>
 
-      <CardContent className="space-y-4">
+      <div className={styles.cardBody}>
         {err ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-            <div className="text-sm font-semibold">Payment Error</div>
-            <div className="mt-1 text-sm">{err}</div>
+          <div className={styles.errorBox}>
+            <div className={styles.errorTitle}>Payment Error</div>
+            <div className={styles.errorText}>{err}</div>
           </div>
         ) : null}
 
-        <form onSubmit={onPay} className="space-y-4">
-          <div className="rounded-xl border bg-background p-4">
+        <form onSubmit={onPay} className={styles.form}>
+          <div className={styles.stripeWrap}>
             <PaymentElement
               options={{
                 layout: {
@@ -80,19 +77,19 @@ function CheckoutForm({ affiliateId }) {
 
           <Button
             type="submit"
-            className="w-full"
+            className={styles.payBtn}
             size="lg"
             disabled={!stripe || loading}
           >
             {loading ? "Processing..." : "Pay now & Activate Subscription"}
           </Button>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Payments are processed by Stripe securely.
+          <p className={styles.secureText}>
+            Payments are processed securely by Stripe.
           </p>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -103,9 +100,11 @@ export default function PaymentClient({ affiliateId }) {
 
   if (!affiliateId || Number.isNaN(Number(affiliateId))) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-        <div className="text-sm font-semibold">Invalid URL</div>
-        <div className="mt-1 text-sm">Invalid affiliate id in URL.</div>
+      <div className={styles.errorStateCard}>
+        <div className={styles.errorBox}>
+          <div className={styles.errorTitle}>Invalid URL</div>
+          <div className={styles.errorText}>Invalid affiliate id in URL.</div>
+        </div>
       </div>
     );
   }
@@ -145,7 +144,6 @@ export default function PaymentClient({ affiliateId }) {
     };
   }, [affiliateId]);
 
-  // ✅ Shadcn-like Stripe appearance
   const options = useMemo(() => {
     if (!clientSecret) return null;
 
@@ -154,78 +152,60 @@ export default function PaymentClient({ affiliateId }) {
       appearance: {
         theme: "flat",
         labels: "floating",
-
         variables: {
-          // Font (close to shadcn default: Inter)
           fontFamily:
             "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
 
-          // Colors (neutral shadcn feel)
-          colorText: "hsl(222.2 84% 4.9%)",
-          colorTextSecondary: "hsl(215.4 16.3% 46.9%)",
-          colorTextPlaceholder: "hsl(215.4 16.3% 46.9%)",
+          colorText: "#111827",
+          colorTextSecondary: "#6b7280",
+          colorTextPlaceholder: "#9ca3af",
 
-          colorBackground: "hsl(0 0% 100%)",
-          colorPrimary: "hsl(221.2 83.2% 53.3%)", // primary-ish blue
-          colorDanger: "hsl(0 84.2% 60.2%)",
+          colorBackground: "#ffffff",
+          colorPrimary: "#7d48c8",
+          colorDanger: "#dc2626",
 
-          // Borders / radius
-          borderRadius: "12px",
+          borderRadius: "14px",
           borderWidth: "1px",
-
-          // Spacing
           spacingUnit: "6px",
         },
-
         rules: {
-          // Base input style
           ".Input": {
-            border: "1px solid hsl(214.3 31.8% 91.4%)",
+            border: "1px solid #e5d8f7",
             boxShadow: "none",
-            backgroundColor: "hsl(0 0% 100%)",
+            backgroundColor: "#ffffff",
           },
-
-          // Focus ring like shadcn
           ".Input:focus": {
-            border: "1px solid hsl(221.2 83.2% 53.3%)",
-            boxShadow: "0 0 0 4px hsl(221.2 83.2% 53.3% / 0.15)",
+            border: "1px solid #7d48c8",
+            boxShadow: "0 0 0 4px rgba(125,72,200,0.14)",
           },
-
-          // Floating labels
           ".Label": {
-            color: "hsl(215.4 16.3% 46.9%)",
+            color: "#6b7280",
             fontWeight: "600",
           },
-
-          // Tabs look cleaner
           ".Tab": {
-            border: "1px solid hsl(214.3 31.8% 91.4%)",
-            borderRadius: "12px",
-            backgroundColor: "hsl(0 0% 100%)",
+            border: "1px solid #e5d8f7",
+            borderRadius: "14px",
+            backgroundColor: "#ffffff",
           },
           ".Tab:hover": {
-            backgroundColor: "hsl(210 40% 98%)",
+            backgroundColor: "#faf7ff",
           },
           ".Tab--selected": {
-            borderColor: "hsl(221.2 83.2% 53.3%)",
-            boxShadow: "0 0 0 4px hsl(221.2 83.2% 53.3% / 0.12)",
+            borderColor: "#7d48c8",
+            boxShadow: "0 0 0 4px rgba(125,72,200,0.12)",
           },
-
-          // Errors
           ".Input--invalid": {
-            borderColor: "hsl(0 84.2% 60.2%)",
+            borderColor: "#dc2626",
           },
           ".Input--invalid:focus": {
-            boxShadow: "0 0 0 4px hsl(0 84.2% 60.2% / 0.15)",
+            boxShadow: "0 0 0 4px rgba(220,38,38,0.14)",
           },
           ".Error": {
-            color: "hsl(0 84.2% 60.2%)",
+            color: "#dc2626",
           },
-
-          // Block container inside PaymentElement
           ".Block": {
-            border: "1px solid hsl(214.3 31.8% 91.4%)",
-            borderRadius: "16px",
+            border: "1px solid #eadcff",
+            borderRadius: "18px",
           },
         },
       },
@@ -234,51 +214,56 @@ export default function PaymentClient({ affiliateId }) {
 
   if (paid) {
     return (
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-base">Payment Status</CardTitle>
-          <CardDescription>Subscription already active.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-green-700">
-            <div className="text-sm font-semibold">Payment Completed</div>
-            <div className="mt-1 text-sm">Payment already completed.</div>
+      <div className={styles.paymentCard}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Payment Status</h2>
+          <p className={styles.cardDesc}>Subscription already active.</p>
+        </div>
+
+        <div className={styles.cardBody}>
+          <div className={styles.successBox}>
+            <div className={styles.successTitle}>Payment Completed</div>
+            <div className={styles.successText}>
+              Payment already completed.
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (err) {
     return (
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-base">Payment Status</CardTitle>
-          <CardDescription>We couldn’t start payment.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-            <div className="text-sm font-semibold">Error</div>
-            <div className="mt-1 text-sm">{err}</div>
+      <div className={styles.paymentCard}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Payment Status</h2>
+          <p className={styles.cardDesc}>We couldn’t start payment.</p>
+        </div>
+
+        <div className={styles.cardBody}>
+          <div className={styles.errorBox}>
+            <div className={styles.errorTitle}>Error</div>
+            <div className={styles.errorText}>{err}</div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (!clientSecret || !options) {
     return (
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-base">Payment</CardTitle>
-          <CardDescription>Loading secure payment form…</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-10 w-full animate-pulse rounded-xl bg-muted" />
-          <div className="mt-3 h-24 w-full animate-pulse rounded-xl bg-muted" />
-          <div className="mt-3 h-10 w-full animate-pulse rounded-xl bg-muted" />
-        </CardContent>
-      </Card>
+      <div className={styles.paymentCard}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Payment</h2>
+          <p className={styles.cardDesc}>Loading secure payment form…</p>
+        </div>
+
+        <div className={styles.cardBody}>
+          <div className={styles.skeletonLine} />
+          <div className={styles.skeletonBlock} />
+          <div className={styles.skeletonLine} />
+        </div>
+      </div>
     );
   }
 
