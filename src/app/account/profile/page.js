@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 import ProfileForm from "./ProfileForm";
+import styles from "./page.module.css";
 
 export const metadata = {
   title: `My Profile | ${process.env.STORE_NAME} Affiliate Program`,
@@ -15,7 +16,7 @@ async function fetchProfile() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/affiliate/profile`, {
     method: "GET",
     cache: "no-store",
-    headers: { cookie: cookieHeader }
+    headers: { cookie: cookieHeader },
   });
 
   const data = await res.json().catch(() => ({}));
@@ -26,15 +27,25 @@ export default async function ProfilePage() {
   const data = await fetchProfile();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8 lg:py-12">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">My Profile</h1>
-        <p className="text-sm text-muted-foreground">
-          Update your basic details and password.
-        </p>
-      </div>
+    <main className={styles.pageWrap}>
+      <section className={styles.heroCard}>
+        <div className={styles.heroGlow}>
+          <div className={styles.heroGlowLeft} />
+          <div className={styles.heroGlowRight} />
+        </div>
 
-      <ProfileForm initialData={data} />
-    </div>
+        <div className={styles.heroInner}>
+          <div className={styles.heroBadge}>Affiliate Profile</div>
+          <h1 className={styles.heroTitle}>My Profile</h1>
+          <p className={styles.heroDesc}>
+            Update your basic details and password.
+          </p>
+        </div>
+      </section>
+
+      <div className={styles.formWrap}>
+        <ProfileForm initialData={data} />
+      </div>
+    </main>
   );
 }
