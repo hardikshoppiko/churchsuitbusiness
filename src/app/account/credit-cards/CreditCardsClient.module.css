@@ -1,0 +1,389 @@
+.wrap {
+  width: 100%;
+}
+
+.toolbarCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #eadcff;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 14px 35px rgba(125, 72, 200, 0.05);
+  padding: 18px;
+}
+
+.toolbarLeft {
+  min-width: 0;
+}
+
+.toolbarTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.toolbarDesc {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #6b7280;
+}
+
+.summaryGrid {
+  display: none;
+  margin-top: 16px;
+  gap: 12px;
+}
+
+.summaryCard {
+  border: 1px solid #eadcff;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffaff 0%, #ffffff 100%);
+  box-shadow: 0 12px 28px rgba(125, 72, 200, 0.04);
+  padding: 16px;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #7d48c8;
+  text-transform: uppercase;
+}
+
+.summaryValue {
+  margin-top: 8px;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 700;
+  color: #111827;
+}
+
+.summaryValueSmall {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: #111827;
+  word-break: break-word;
+}
+
+.addButton,
+.removeButton {
+  border: 0 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #9d6ce0 0%, #7d48c8 100%) !important;
+  box-shadow: 0 12px 24px rgba(125, 72, 200, 0.18);
+}
+
+.errorBox {
+  margin-top: 16px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.warningBox {
+  margin-top: 14px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #a16207;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.tableCard {
+  margin-top: 18px;
+  border: 1px solid #eadcff;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(125, 72, 200, 0.06);
+  overflow: hidden;
+}
+
+.tableScroller {
+  overflow-x: auto;
+}
+
+.tableHeadRow {
+  background: #fbf7ff;
+}
+
+.tableHeadCell {
+  color: #7d48c8 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.02em;
+}
+
+.tableBodyRow {
+  transition: background 0.2s ease;
+}
+
+.tableBodyRow:hover {
+  background: #fcf9ff;
+}
+
+.tableCell {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+  vertical-align: middle !important;
+}
+
+.desktopCardCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 1px solid #eadcff;
+  border-radius: 16px;
+  background: #faf7ff;
+  color: #7d48c8;
+}
+
+.desktopCardText {
+  text-align: left;
+}
+
+.desktopCardBrand {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.desktopCardLast4 {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.tableMuted {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.tableDash {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.desktopActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pillSuccess {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.pillWarning {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #a16207;
+}
+
+.pillDefault {
+  border-color: #eadcff;
+  background: #faf7ff;
+  color: #6b7280;
+}
+
+.defaultDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #16a34a;
+  display: inline-block;
+}
+
+.actionBtn {
+  gap: 8px !important;
+  transition: all 0.15s ease !important;
+  min-width: 48px;
+}
+
+.actionBtn:hover {
+  transform: translateY(-1px);
+}
+
+.actionBtn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.actionDefault {
+  border-color: #e3d3fa !important;
+  background: #faf7ff !important;
+  color: #7d48c8 !important;
+}
+
+.actionPrimary {
+  border-color: rgba(125, 72, 200, 0.2) !important;
+  background: #ffffff !important;
+  color: #7d48c8 !important;
+}
+
+.actionDanger {
+  border-color: #fecaca !important;
+  background: #fff5f5 !important;
+  color: #dc2626 !important;
+}
+
+.stateBox {
+  padding: 20px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.mobileStateCard {
+  margin-top: 18px;
+  border: 1px solid #eadcff;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 14px 35px rgba(125, 72, 200, 0.05);
+  padding: 18px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.mobileList {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.mobileCard {
+  border: 1px solid #eadcff;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 14px 35px rgba(125, 72, 200, 0.05);
+  padding: 16px;
+}
+
+.mobileCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobileCardBrandWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobileCardMeta {
+  min-width: 0;
+  flex: 1;
+}
+
+.mobileBrandTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobileBrand {
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #111827;
+}
+
+.mobileCardNumber {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #111827;
+  font-weight: 600;
+}
+
+.mobileCardExpiry {
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.mobileSavedWrap {
+  flex: 0 0 auto;
+}
+
+.mobileCardFooter {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f2e9ff;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.confirmActions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .toolbarCard {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+  }
+
+  .summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .confirmActions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .toolbarCard {
+    padding: 22px;
+  }
+}

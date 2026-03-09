@@ -1,0 +1,398 @@
+.pageWrap {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.heroCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #eadcff;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #fffaff 0%, #ffffff 100%);
+  box-shadow: 0 18px 48px rgba(125, 72, 200, 0.08);
+}
+
+.heroGlow {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.78;
+}
+
+.heroGlowLeft {
+  position: absolute;
+  top: -120px;
+  left: -120px;
+  width: 280px;
+  height: 280px;
+  border-radius: 999px;
+  background: #d9b8ff;
+  filter: blur(120px);
+}
+
+.heroGlowRight {
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 280px;
+  height: 280px;
+  border-radius: 999px;
+  background: #efe2ff;
+  filter: blur(120px);
+}
+
+.heroInner {
+  position: relative;
+  z-index: 2;
+  padding: 22px 20px;
+}
+
+/* Mobile */
+.heroMobile {
+  display: block;
+}
+
+.heroMobileTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.heroDesktop {
+  display: none;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.heroDesc {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6b7280;
+}
+
+.heroCountBox {
+  flex: 0 0 auto;
+  border: 1px solid #e7d5fb;
+  background: #ffffffcc;
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(125, 72, 200, 0.06);
+}
+
+.heroCountValue {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Desktop */
+.heroDesktopLeft {
+  min-width: 0;
+}
+
+.heroDesktopRight {
+  flex: 0 0 auto;
+}
+
+.heroBadgeDesktop {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 7px 14px;
+  border: 1px solid #e5d5fa;
+  border-radius: 999px;
+  background: #f7efff;
+  color: #7d48c8;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.heroCountCard {
+  min-width: 130px;
+  border: 1px solid #eadcff;
+  border-radius: 20px;
+  background: #faf7ff;
+  padding: 14px 16px;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.heroCountLabel {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.heroCountNumber {
+  margin-top: 4px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: #111827;
+}
+
+.errorBox {
+  margin-top: 22px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.emptyBox {
+  margin-top: 22px;
+  border: 1px solid #eadcff;
+  background: #faf7ff;
+  color: #6b7280;
+  border-radius: 16px;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.mobileList {
+  margin-top: 22px;
+}
+
+.invoiceCard {
+  border: 1px solid #eadcff;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 14px 35px rgba(125, 72, 200, 0.05);
+  padding: 14px;
+}
+
+.invoiceCard + .invoiceCard {
+  margin-top: 12px;
+}
+
+.invoiceCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.invoiceCardMeta {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.invoiceNumber {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #111827;
+  word-break: break-word;
+}
+
+.invoiceDate {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6b7280;
+}
+
+.invoiceStatusWrap {
+  flex: 0 0 auto;
+}
+
+.invoiceBottomRow {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f2e9ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.invoiceBottomLeft {
+  flex: 0 0 auto;
+}
+
+.invoiceBottomRight {
+  min-width: 0;
+  text-align: right;
+}
+
+.invoiceTotalLabel {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+.invoiceTotalValue {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.statusPaid {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.statusOpen {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #a16207;
+}
+
+.statusVoid {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.statusDefault {
+  border-color: #eadcff;
+  background: #faf7ff;
+  color: #111827;
+}
+
+.tableWrapOuter {
+  margin-top: 22px;
+}
+
+.tableCard {
+  border: 1px solid #eadcff;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(125, 72, 200, 0.06);
+  overflow: hidden;
+}
+
+.tableScroller {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tableMinWidth {
+  min-width: 900px;
+}
+
+.tableHeadRow {
+  background: #fbf7ff;
+}
+
+.tableHeadCell {
+  color: #7d48c8 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.02em;
+}
+
+.tableBodyRow {
+  transition: background 0.2s ease;
+}
+
+.tableBodyRow:hover {
+  background: #fcf9ff;
+}
+
+.tableCell {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+  vertical-align: middle !important;
+}
+
+.tableDateText {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.tableAmount {
+  font-weight: 700;
+  color: #111827;
+}
+
+.tableActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.actionButton {
+  border-color: #e3d3fa !important;
+  background: #faf7ff !important;
+  color: #7d48c8 !important;
+  min-width: 42px;
+}
+
+@media (min-width: 768px) {
+  .heroInner {
+    padding: 30px 24px;
+  }
+
+  .heroMobile {
+    display: none;
+  }
+
+  .heroDesktop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .heroTitle {
+    margin-top: 10px;
+    font-size: 32px;
+  }
+
+  .heroDesc {
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.8;
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pageWrap {
+    padding: 22px;
+  }
+
+  .heroInner {
+    padding: 34px 30px;
+  }
+
+  .heroTitle {
+    font-size: 36px;
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import AddCardForm from "./AddCardForm";
 
@@ -31,6 +32,8 @@ import {
 
 import { useToast } from "@/components/ui/use-toast";
 
+import styles from "./CreditCardsClient.module.css";
+
 function fmtExp(card) {
   const m = String(card?.exp_month || "").padStart(2, "0");
   const y = String(card?.exp_year || "");
@@ -52,22 +55,28 @@ function brandIcon(brand) {
   if (b.includes("amex")) return "cc-amex";
   if (b.includes("discover")) return "cc-discover";
 
-  return null; // fallback handled in JSX
+  return null;
+}
+
+function sortCards(list, defaultPaymentMethod) {
+  const def = String(defaultPaymentMethod || "");
+
+  return (Array.isArray(list) ? list : []).slice().sort((a, b) => {
+    const aIsDefault = String(a?.id || "") === def ? 0 : 1;
+    const bIsDefault = String(b?.id || "") === def ? 0 : 1;
+    return aIsDefault - bIsDefault;
+  });
 }
 
 function Pill({ children, tone = "default" }) {
   const cls =
     tone === "success"
-      ? "border-green-200 bg-green-50 text-green-700"
+      ? styles.pillSuccess
       : tone === "warning"
-      ? "border-amber-200 bg-amber-50 text-amber-800"
-      : "border-border bg-muted/30 text-muted-foreground";
+      ? styles.pillWarning
+      : styles.pillDefault;
 
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${cls}`}>
-      {children}
-    </span>
-  );
+  return <span className={`${styles.pill} ${cls}`}>{children}</span>;
 }
 
 function ActionBtn({
@@ -86,26 +95,24 @@ function ActionBtn({
 
   const btnClass =
     tone === "danger"
-      ? "border-red-200 text-red-700 hover:bg-red-50"
+      ? styles.actionDanger
       : tone === "primary"
-      ? "border-primary/20 hover:bg-muted/40"
-      : "";
+      ? styles.actionPrimary
+      : styles.actionDefault;
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className={disabled ? "inline-flex cursor-not-allowed" : "inline-flex"}>
+        <span
+          className={disabled ? "inline-flex cursor-not-allowed" : "inline-flex"}
+        >
           <Button
             type="button"
             variant="outline"
             size="sm"
             disabled={disabled}
             onClick={disabled ? undefined : onClick}
-            className={[
-              "gap-2 transition-all duration-150",
-              "hover:-translate-y-[1px] active:translate-y-0 active:scale-[0.98]",
-              btnClass,
-            ].join(" ")}
+            className={`${styles.actionBtn} ${btnClass}`}
           >
             {content}
             {!icon ? null : <span className="sr-only">{label}</span>}
@@ -125,45 +132,42 @@ function CardRow({ c, isDefault, isBusy, onMakeDefault, onRemove }) {
   const brand = cardBrandLabel(c.brand);
   const last4 = c.last4 ? `•••• ${c.last4}` : "—";
   const exp = fmtExp(c);
-
   const icon = brandIcon(brand);
 
   return (
-    <div className="rounded-2xl border bg-background p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border bg-muted/30 text-muted-foreground">
+    <div className={styles.mobileCard}>
+      <div className={styles.mobileCardHeader}>
+        <div className={styles.mobileCardBrandWrap}>
+          <div className={styles.cardIcon}>
             <i
-              className={
-                icon ? `fa-brands fa-${icon}` : "fa fa-credit-card"
-              }
+              className={icon ? `fa-brands fa-${icon}` : "fa fa-credit-card"}
               aria-hidden="true"
             />
           </div>
 
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="text-sm font-semibold">{brand}</div>
+          <div className={styles.mobileCardMeta}>
+            <div className={styles.mobileBrandTitleRow}>
+              <div className={styles.mobileBrand}>{brand}</div>
+
               {isDefault ? (
                 <Pill tone="success">
-                  <span className="mr-2 inline-block h-2 w-2 rounded-full bg-green-600" />
+                  <span className={styles.defaultDot} />
                   Default
                 </Pill>
               ) : null}
             </div>
 
-            <div className="mt-1 text-xs text-muted-foreground break-all">
-              {last4} • Exp {exp}
-            </div>
+            <div className={styles.mobileCardNumber}>{last4}</div>
+            <div className={styles.mobileCardExpiry}>Exp {exp}</div>
           </div>
         </div>
 
-        <div className="text-right">
-          <Pill>{pmId ? "Saved" : "—"}</Pill>
+        <div className={styles.mobileSavedWrap}>
+          <Pill>Saved</Pill>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-2">
+      <div className={styles.mobileCardFooter}>
         <ActionBtn
           disabled={isDefault || isBusy}
           onClick={() => onMakeDefault(pmId)}
@@ -193,7 +197,12 @@ function CardRow({ c, isDefault, isBusy, onMakeDefault, onRemove }) {
   );
 }
 
-export default function CreditCardsClient() {
+export default function CreditCardsClient({ initialData }) {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const usedInitialDataRef = useRef(false);
+
   const [open, setOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
@@ -202,39 +211,48 @@ export default function CreditCardsClient() {
   const [err, setErr] = useState("");
   const [busyId, setBusyId] = useState("");
 
-  // confirm dialog state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmPmId, setConfirmPmId] = useState("");
   const [confirmIsDefault, setConfirmIsDefault] = useState(false);
 
-  const { toast } = useToast();
-
-  async function loadCards() {
+  async function loadCards(forceFresh = false) {
     setLoading(true);
     setErr("");
 
     try {
+      if (
+        !forceFresh &&
+        !usedInitialDataRef.current &&
+        initialData &&
+        typeof initialData === "object" &&
+        Array.isArray(initialData.cards)
+      ) {
+        const def = String(initialData.default_payment_method || "");
+        const sorted = sortCards(initialData.cards, def);
+
+        setCards(sorted);
+        setDefaultPm(def);
+        usedInitialDataRef.current = true;
+        return;
+      }
+
       const res = await fetch("/api/affiliate/credit-cards", {
         method: "GET",
         cache: "no-store",
       });
 
       const j = await res.json().catch(() => ({}));
-      if (!j?.ok) throw new Error(j?.message || "Failed to load cards");
+      if (!j?.ok) {
+        throw new Error(j?.message || "Failed to load cards");
+      }
 
       const def = String(j.default_payment_method || "");
-
       const list = Array.isArray(j.cards) ? j.cards : [];
-
-      // ✅ default card first
-      const sorted = list.slice().sort((a, b) => {
-        const aIsDefault = String(a?.id || "") === def ? 0 : 1;
-        const bIsDefault = String(b?.id || "") === def ? 0 : 1;
-        return aIsDefault - bIsDefault;
-      });
+      const sorted = sortCards(list, def);
 
       setCards(sorted);
       setDefaultPm(def);
+      usedInitialDataRef.current = true;
     } catch (e) {
       setErr(String(e?.message || "Failed to load cards"));
       setCards([]);
@@ -245,30 +263,44 @@ export default function CreditCardsClient() {
   }
 
   useEffect(() => {
-    loadCards();
+    loadCards(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const hasCards = cards && cards.length > 0;
+  const hasCards = cards.length > 0;
+  const totalCards = cards.length;
+  const defaultCard = cards.find(
+    (c) => String(c.id || "") === String(defaultPm || "")
+  );
 
   async function makeDefault(pmId) {
     if (!pmId) return;
+
     setBusyId(pmId);
     setErr("");
+
     try {
       const res = await fetch("/api/affiliate/credit-cards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
-        body: JSON.stringify({ action: "set_default", payment_method: pmId }),
+        body: JSON.stringify({
+          action: "set_default",
+          payment_method: pmId,
+        }),
       });
+
       const j = await res.json().catch(() => ({}));
-      if (!j?.ok) throw new Error(j?.message || "Failed to set default");
-      await loadCards();
+      if (!j?.ok) {
+        throw new Error(j?.message || "Failed to set default");
+      }
+
+      await loadCards(true);
 
       toast({
         title: "Default card updated",
         description: "Subscription billing will use this card.",
-        position: "bottom-center"
+        position: "bottom-center",
       });
     } catch (e) {
       setErr(String(e?.message || "Failed to set default"));
@@ -281,7 +313,9 @@ export default function CreditCardsClient() {
     if (!pmId) return;
 
     if (isDefault) {
-      setErr("Default card cannot be removed. Please set another card as default first.");
+      setErr(
+        "Default card cannot be removed. Please set another card as default first."
+      );
       return;
     }
 
@@ -303,15 +337,22 @@ export default function CreditCardsClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
-        body: JSON.stringify({ action: "remove", payment_method: pmId }),
+        body: JSON.stringify({
+          action: "remove",
+          payment_method: pmId,
+        }),
       });
+
       const j = await res.json().catch(() => ({}));
-      if (!j?.ok) throw new Error(j?.message || "Failed to remove card");
-      await loadCards();
+      if (!j?.ok) {
+        throw new Error(j?.message || "Failed to remove card");
+      }
+
+      await loadCards(true);
 
       toast({
         title: "Card removed",
-        position: "bottom-center"
+        position: "bottom-center",
       });
     } catch (e) {
       setErr(String(e?.message || "Failed to remove card"));
@@ -324,159 +365,186 @@ export default function CreditCardsClient() {
 
   async function handleAdded() {
     setOpen(false);
-    await loadCards();
+
+    await loadCards(true);
 
     toast({
       title: "Card added",
       description: "New card saved and set as default.",
-      position: "bottom-center"
+      position: "bottom-center",
     });
+
+    setTimeout(() => {
+      router.refresh();
+    }, 150);
   }
 
   return (
-      <div className="w-full">
-      {/* Premium header */}
-      <div className="mb-5 rounded-3xl border bg-background p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Payment Method</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Add a new card and set your default card for billing.
-            </p>
+    <div className={styles.wrap}>
+      <div className={styles.toolbarCard}>
+        <div className={styles.toolbarLeft}>
+          <div className={styles.toolbarTitle}>Saved Cards</div>
+          <div className={styles.toolbarDesc}>
+            Choose which card should be used for subscription billing.
           </div>
+        </div>
 
-          <Button
-            onClick={() => setOpen(true)}
-            className="w-full sm:w-auto transition-all duration-150 hover:-translate-y-[1px] active:translate-y-0 active:scale-[0.98]"
-          >
-            <i className="fa fa-plus mr-2" aria-hidden="true" />
-            Add New Card
-          </Button>
+        <Button onClick={() => setOpen(true)} className={styles.addButton}>
+          <i className="fa fa-plus mr-2" aria-hidden="true" />
+          Add New Card
+        </Button>
+      </div>
+
+      <div className={styles.summaryGrid}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabel}>Total Cards</div>
+          <div className={styles.summaryValue}>{loading ? "—" : totalCards}</div>
+        </div>
+
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabel}>Default Card</div>
+          <div className={styles.summaryValueSmall}>
+            {loading
+              ? "Loading..."
+              : defaultCard
+              ? `${cardBrandLabel(defaultCard.brand)} •••• ${
+                  defaultCard.last4 || ""
+                }`
+              : "Not set"}
+          </div>
         </div>
       </div>
 
-      {err ? (
-        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {err}
-        </div>
-      ) : null}
+      {err ? <div className={styles.errorBox}>{err}</div> : null}
 
       <TooltipProvider delayDuration={120}>
-        {/* Desktop table */}
-        <div className="hidden sm:block overflow-hidden rounded-3xl border bg-background shadow-sm">
-          {loading ? (
-            <div className="p-5 text-sm text-muted-foreground">Loading cards...</div>
-          ) : !hasCards ? (
-            <div className="p-5 text-sm text-muted-foreground">
-              No cards found. Click <b>Add New Card</b> to save a card.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[260px] text-center">Card</TableHead>
-                    <TableHead className="min-w-[140px] text-center">Expiry</TableHead>
-                    <TableHead className="min-w-[150px] text-center">Default</TableHead>
-                    <TableHead className="min-w-[260px] text-center">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+        <div className="hidden sm:block">
+          <div className={styles.tableCard}>
+            {loading ? (
+              <div className={styles.stateBox}>Loading cards...</div>
+            ) : !hasCards ? (
+              <div className={styles.stateBox}>
+                No cards found. Click <b>Add New Card</b> to save a card.
+              </div>
+            ) : (
+              <div className={styles.tableScroller}>
+                <Table>
+                  <TableHeader>
+                    <TableRow className={styles.tableHeadRow}>
+                      <TableHead className={`${styles.tableHeadCell} text-center`}>
+                        Card
+                      </TableHead>
+                      <TableHead className={`${styles.tableHeadCell} text-center`}>
+                        Expiry
+                      </TableHead>
+                      <TableHead className={`${styles.tableHeadCell} text-center`}>
+                        Default
+                      </TableHead>
+                      <TableHead className={`${styles.tableHeadCell} text-center`}>
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                <TableBody>
-                  {cards.map((c) => {
-                    const pmId = String(c.id || "");
-                    const brand = cardBrandLabel(c.brand);
-                    const last4 = c.last4 ? `•••• ${c.last4}` : "—";
-                    const exp = fmtExp(c);
+                  <TableBody>
+                    {cards.map((c) => {
+                      const pmId = String(c.id || "");
+                      const brand = cardBrandLabel(c.brand);
+                      const last4 = c.last4 ? `•••• ${c.last4}` : "—";
+                      const exp = fmtExp(c);
 
-                    const isDefault = defaultPm && pmId && defaultPm === pmId;
-                    const isBusy = busyId === pmId;
+                      const isDefault = !!(defaultPm && pmId && defaultPm === pmId);
+                      const isBusy = busyId === pmId;
+                      const icon = brandIcon(brand);
 
-                    const icon = brandIcon(brand);
+                      return (
+                        <TableRow key={pmId} className={styles.tableBodyRow}>
+                          <TableCell className={`${styles.tableCell} text-center`}>
+                            <div className={styles.desktopCardCell}>
+                              <div className={styles.cardIcon}>
+                                <i
+                                  className={
+                                    icon
+                                      ? `fa-brands fa-${icon}`
+                                      : "fa fa-credit-card"
+                                  }
+                                  aria-hidden="true"
+                                />
+                              </div>
 
-                    // console.log(icon);
+                              <div className={styles.desktopCardText}>
+                                <div className={styles.desktopCardBrand}>
+                                  {brand}
+                                </div>
+                                <div className={styles.desktopCardLast4}>
+                                  {last4}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
 
-                    return (
-                      <TableRow key={pmId}>
-                        <TableCell className="font-semibold text-center">
-                          <div className="flex justify-center items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border bg-muted/30 text-muted-foreground">
-                              <i
-                                className={
-                                  icon ? `fa-brands fa-${icon}` : "fa fa-credit-card"
+                          <TableCell className={`${styles.tableCell} text-center`}>
+                            <span className={styles.tableMuted}>{exp}</span>
+                          </TableCell>
+
+                          <TableCell className={`${styles.tableCell} text-center`}>
+                            {isDefault ? (
+                              <Pill tone="success">Yes</Pill>
+                            ) : (
+                              <span className={styles.tableDash}>—</span>
+                            )}
+                          </TableCell>
+
+                          <TableCell className={`${styles.tableCell} text-center`}>
+                            <div className={styles.desktopActions}>
+                              <ActionBtn
+                                disabled={isDefault || isBusy}
+                                onClick={() => makeDefault(pmId)}
+                                label="Make Default"
+                                icon="check"
+                                tooltip={
+                                  isDefault
+                                    ? "This is already your default card"
+                                    : "Set this card as your default payment method"
                                 }
-                                aria-hidden="true"
+                              />
+
+                              <ActionBtn
+                                disabled={isBusy || isDefault}
+                                onClick={() => askRemove(pmId, isDefault)}
+                                label="Remove"
+                                icon="trash"
+                                tone="danger"
+                                tooltip={
+                                  isDefault
+                                    ? "Default card cannot be removed"
+                                    : "Remove this card from your account"
+                                }
                               />
                             </div>
-
-                            <div className="min-w-0">
-                              <div className="text-xs text-muted-foreground">{last4}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="text-sm text-muted-foreground text-center">{exp}</TableCell>
-
-                        <TableCell className="text-center">
-                          {isDefault ? (
-                            <Pill tone="success">Yes</Pill>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-
-                        <TableCell className="text-center">
-                          <div className="flex flex-wrap justify-center gap-2">
-                            <ActionBtn
-                              disabled={isDefault || isBusy}
-                              onClick={() => makeDefault(pmId)}
-                              label="Make Default"
-                              icon="check"
-                              tooltip={
-                                isDefault
-                                  ? "This is already your default card"
-                                  : "Set this card as your default payment method"
-                              }
-                            />
-
-                            <ActionBtn
-                              disabled={isBusy || isDefault}
-                              onClick={() => askRemove(pmId, isDefault)}
-                              label="Remove"
-                              icon="trash"
-                              tone="danger"
-                              tooltip={
-                                isDefault
-                                  ? "Default card cannot be removed"
-                                  : "Remove this card from your account"
-                              }
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Mobile cards */}
         <div className="sm:hidden">
           {loading ? (
-            <div className="rounded-3xl border bg-background p-5 text-sm text-muted-foreground shadow-sm">
-              Loading cards...
-            </div>
+            <div className={styles.mobileStateCard}>Loading cards...</div>
           ) : !hasCards ? (
-            <div className="rounded-3xl border bg-background p-5 text-sm text-muted-foreground shadow-sm">
+            <div className={styles.mobileStateCard}>
               No cards found. Tap <b>Add New Card</b> to save a card.
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className={styles.mobileList}>
               {cards.map((c) => {
                 const pmId = String(c.id || "");
-                const isDefault = defaultPm && pmId && defaultPm === pmId;
+                const isDefault = !!(defaultPm && pmId && defaultPm === pmId);
                 const isBusy = busyId === pmId;
 
                 return (
@@ -494,13 +562,13 @@ export default function CreditCardsClient() {
           )}
         </div>
 
-        {/* Add Card dialog */}
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="w-[calc(100%-1.5rem)] sm:max-w-xl max-sm:inset-0 max-sm:h-[100dvh] max-sm:w-[100vw] max-sm:rounded-none max-sm:p-4 max-sm:overflow-y-auto">
+          <DialogContent className="w-[calc(100%-1rem)] sm:max-w-lg max-sm:max-h-[90dvh] rounded-2xl p-4 sm:p-5 overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Card</DialogTitle>
               <DialogDescription>
-                Enter your card details. After saving, it will become your default card.
+                Enter your card details. After saving, it will become your
+                default card.
               </DialogDescription>
             </DialogHeader>
 
@@ -510,32 +578,29 @@ export default function CreditCardsClient() {
           </DialogContent>
         </Dialog>
 
-        {/* Remove confirmation dialog */}
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent className="w-[calc(100%-1.5rem)] sm:max-w-md max-sm:inset-0 max-sm:h-[100dvh] max-sm:w-[100vw] max-sm:rounded-none max-sm:p-4 max-sm:overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Remove Card?</DialogTitle>
               <DialogDescription>
-                This will remove the card from your account. You can add it again later.
+                This will remove the card from your account. You can add it again
+                later.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <div className={styles.confirmActions}>
               <Button variant="outline" onClick={() => setConfirmOpen(false)}>
                 Cancel
               </Button>
 
-              <Button
-                onClick={removeCardConfirmed}
-                className="transition-all duration-150 hover:-translate-y-[1px] active:translate-y-0 active:scale-[0.98]"
-              >
+              <Button onClick={removeCardConfirmed} className={styles.removeButton}>
                 <i className="fa fa-trash mr-2" aria-hidden="true" />
                 Remove
               </Button>
             </div>
 
             {confirmIsDefault ? (
-              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              <div className={styles.warningBox}>
                 Default card cannot be removed. Set another card as default first.
               </div>
             ) : null}

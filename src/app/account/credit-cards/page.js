@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 import CreditCardsClient from "./CreditCardsClient";
+import styles from "./page.module.css";
 
 export const metadata = {
   title: `Payment Method | ${process.env.STORE_NAME} Affiliate Program`,
@@ -25,15 +26,26 @@ export default async function CreditCardsPage() {
   const data = await fetchCards();
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6">
-      {/* <div className="mb-5">
-        <h1 className="text-2xl font-bold tracking-tight">Payment Method</h1>
-        <p className="text-sm text-muted-foreground">
-          Add a new card and set your default card for billing.
-        </p>
-      </div> */}
+    <main className={styles.pageWrap}>
+      <section className={styles.heroCard}>
+        <div className={styles.heroGlow}>
+          <div className={styles.heroGlowLeft} />
+          <div className={styles.heroGlowRight} />
+        </div>
 
-      <CreditCardsClient initialData={data} />
-    </div>
+        <div className={styles.heroInner}>
+          <div className={styles.heroBadge}>Billing &amp; Payments</div>
+          <h1 className={styles.heroTitle}>Payment Method</h1>
+          <p className={styles.heroDesc}>
+            Add a new card, remove old cards, and manage your default payment
+            method for subscription billing.
+          </p>
+        </div>
+      </section>
+
+      <div className={styles.contentWrap}>
+        <CreditCardsClient initialData={data} />
+      </div>
+    </main>
   );
 }
