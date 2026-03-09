@@ -1,7 +1,8 @@
-import { clearSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
+import { clearSession } from "@/lib/auth";
+
 export async function GET() {
-  clearSession();
+  await clearSession();
   redirect("/account/login");
 }
