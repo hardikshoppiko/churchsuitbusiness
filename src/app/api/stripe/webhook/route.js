@@ -260,10 +260,11 @@ export async function POST(req) {
       return jsonErr(`Webhook signature verification failed: ${err.message}`, 400);
     }
 
-    console.log(event);
+    // console.log(event);
 
     // ✅ subscription success events
-    if (event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") {
+    if (event.type === "invoice.paid") {
+      //  || event.type === "invoice.payment_succeeded"
       const invoice = event.data.object;
 
       // console.log(`Invoice: ${invoice}`);
