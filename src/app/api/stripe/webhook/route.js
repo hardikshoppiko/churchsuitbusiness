@@ -41,6 +41,12 @@ async function getAffiliateIdFromInvoice(invoice) {
   return { affiliate_id, subscriptionId, customerId, subscription: sub };
 }
 
+async function getAffiliateFromSubscriptionId(affiliate) {
+  const [rows] = await db.query(`SELECT * FROM affiliate WHERE recurring_billing_id='${affiliate.recurring_billing_id}' AND is_delete=0 LIMIT 1`);
+
+  return rows?.[0] || null;
+}
+
 async function hasPaymentRowAlready(affiliateId, invoice_number, payment_charge_id) {
   const affId = Number(affiliateId);
   if (!affId) return false;
@@ -254,7 +260,7 @@ export async function POST(req) {
       return jsonErr(`Webhook signature verification failed: ${err.message}`, 400);
     }
 
-    // console.log(`Event: ${event}`);
+    console.log(event);
 
     // ✅ subscription success events
     if (event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") {
@@ -310,6 +316,45 @@ export async function POST(req) {
       });
 
       return jsonOK({ received: true, event: event.type, affiliate_id, result });
+    }
+
+    // Cancel Subscription
+    if(event.type === "customer.subscription.deleted") {
+      const invoice = event.data.object;
+      
+      if (!invoice.id) {
+        console.log("Subscription ID missing in subscription metadata");
+
+        return jsonOK({
+          received: true,
+          warning: "Subscription ID missing in subscription metadata",
+          event: event.type,
+          invoice: invoice.id,
+        });
+      }
+
+      const affiliate_info = await getAffiliateFromSubscriptionId({ recurring_billing_id: invoice.id });
+
+      if(!affiliate_info) {
+        console.log("Subscription ID missing in our database!");
+
+        return jsonOK({
+          received: true,
+          warning: "Subscription ID missing in our database!",
+          event: event.type,
+          invoice: invoice.id,
+        });
+      }
+
+      // Disable affiliate_user only on first payment
+      await db.query(`UPDATE affiliate_user SET status=0, date_modified=NOW() WHERE affiliate_id=${affiliate_info.affiliate_id}`);
+      
+      // Disable Affiliate
+      await db.query(`UPDATE affiliate SET status=0, date_modified=NOW(), date_update=NOW() WHERE affiliate_id=${affiliate_info.affiliate_id}`);
+
+      // send email here, in future
+
+      return jsonOK({ received: true, event: event.type, affiliate_id: affiliate_info.affiliate_id });
     }
 
     return jsonOK({ received: true, event: event.type });
