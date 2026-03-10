@@ -86,7 +86,8 @@ async function getPaymentStage(affiliateId) {
 
   // console.log("Successful payment count:", total);
 
-  return (total === 1 || total === 0) ? "first" : "renewal";
+  // return (total === 1 || total === 0) ? "first" : "renewal";
+  return ((total === 0) ? "first" : "renewal");
 }
 
 async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId }) {
