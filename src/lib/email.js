@@ -78,7 +78,7 @@ export async function sendSubscriptionActivatedEmail({ to, name, affiliateId }) 
   const html = `
     <h2>Welcome ${name || ""}!</h2>
     <p>Your subscription is now active and your store has been activated.</p>
-    <p><a href="${process.env.APP_URL}/dashboard">Go to Dashboard</a></p>
+    <p><a href="${process.env.APP_URL}/account">Go to Dashboard</a></p>
     <p>If you still need to complete anything, you can also pay here:</p>
     <p><a href="${process.env.APP_URL}/register/payment/${affiliateId}">Complete Payment</a></p>
   `;
@@ -97,7 +97,7 @@ export async function sendSubscriptionRenewedEmail({ to, name, affiliateId, amou
     <p>Your monthly subscription renewal was successful.</p>
     <p><b>Amount:</b> $${Number(amount || 0).toFixed(2)}</p>
     <p><b>Invoice:</b> ${invoiceId || ""}</p>
-    <p><a href="${process.env.APP_URL}/dashboard">Open Dashboard</a></p>
+    <p><a href="${process.env.APP_URL}/account">Open Dashboard</a></p>
   `;
 
   try {
@@ -112,7 +112,7 @@ export async function sendSubscriptionUpdatedEmail({ to, name, affiliateId }) {
   const html = `
     <h2>Hi ${name || ""},</h2>
     <p>Your subscription was updated successfully.</p>
-    <p><a href="${process.env.APP_URL}/dashboard">Open Dashboard</a></p>
+    <p><a href="${process.env.APP_URL}/account">Open Dashboard</a></p>
   `;
   
   try {

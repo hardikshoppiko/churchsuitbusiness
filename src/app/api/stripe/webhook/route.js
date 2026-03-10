@@ -30,14 +30,13 @@ async function getAffiliateIdFromInvoice(invoice) {
   const subscriptionId = invoice.subscription || null;
   const customerId = invoice.customer || null;
 
-  if (!subscriptionId) return { affiliate_id: null, subscriptionId, customerId };
+  if (!subscriptionId) {
+    return { affiliate_id: null, subscriptionId, customerId };
+  }
 
   const sub = await stripe.subscriptions.retrieve(subscriptionId);
 
-  const affiliate_id =
-    sub?.metadata?.affiliate_id ||
-    sub?.metadata?.affiliateId ||
-    null;
+  const affiliate_id = sub?.metadata?.affiliate_id || sub?.metadata?.affiliateId || null;
 
   return { affiliate_id, subscriptionId, customerId, subscription: sub };
 }
@@ -250,7 +249,7 @@ export async function POST(req) {
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      console.log()
+      console.log(err.message);
       return jsonErr(`Webhook signature verification failed: ${err.message}`, 400);
     }
 
