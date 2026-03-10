@@ -36,7 +36,15 @@ async function getAffiliateIdFromInvoice(invoice) {
 
   const sub = await stripe.subscriptions.retrieve(subscriptionId);
 
-  const affiliate_id = sub?.metadata?.affiliate_id || sub?.metadata?.affiliateId || null;
+  let affiliate_id = sub?.metadata?.affiliate_id || sub?.metadata?.affiliateId || null;
+
+  if(!affiliate_id && subscriptionId) {
+    const affiliate_info = await getAffiliateFromSubscriptionId({ recurring_billing_id: subscriptionId });
+
+    if(affiliate_info && affiliate_info.affiliate_id !== undefined) {
+      affiliate_id = affiliate_info.affiliate_id;
+    }
+  }
 
   return { affiliate_id, subscriptionId, customerId, subscription: sub };
 }
