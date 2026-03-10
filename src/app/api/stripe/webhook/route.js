@@ -50,7 +50,13 @@ async function getAffiliateIdFromInvoice(invoice) {
 }
 
 async function getAffiliateFromSubscriptionId(affiliate) {
-  const [rows] = await db.query(`SELECT * FROM affiliate WHERE recurring_billing_id='${affiliate.recurring_billing_id}' AND is_delete=0 LIMIT 1`);
+  const recurringId = dbEscape(String(affiliate?.recurring_billing_id || ""));
+
+  if (!recurringId) {
+    return null;
+  }
+
+  const [rows] = await db.query(`SELECT * FROM affiliate WHERE recurring_billing_id='${recurringId}' AND is_delete=0 LIMIT 1`);
 
   return rows?.[0] || null;
 }
