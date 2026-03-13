@@ -256,14 +256,12 @@ export default async function AccountHome() {
           <div className={styles.panelCard}>
             <div className={styles.panelHeader}>
               <div className={styles.panelTitle}>Recent Activity</div>
-              <div className={styles.panelDesc}>
+              {/* <div className={styles.panelDesc}>
                 (Next: we can connect this with affiliate_activity table)
-              </div>
+              </div> */}
             </div>
 
-            <div className={styles.emptyState}>
-              No recent activity to show yet.
-            </div>
+            <div className={styles.emptyState}>No recent activity to show yet.</div>
           </div>
         </div>
 

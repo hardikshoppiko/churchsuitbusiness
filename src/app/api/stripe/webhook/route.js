@@ -2,7 +2,7 @@ import { serialize } from "php-serialize";
 
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-import { dbEscape } from "@/lib/db-utils";
+import { dbEscape, formatDate, money } from "@/lib/db-utils";
 
 import { sendPaymentFailedEmail, sendSubscriptionActivatedEmail, sendSubscriptionRenewedEmail, sendSubscriptionUpdatedEmail } from "@/lib/email";
 
@@ -178,12 +178,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
   `);
 
   // Email notification logic (unchanged, but now uses paymentStage already computed)
-  const [rows] = await db.query(`
-    SELECT email, firstname, lastname
-    FROM affiliate
-    WHERE affiliate_id=${affId}
-    LIMIT 1
-  `);
+  const [rows] = await db.query(`SELECT email, firstname, lastname, store_name, fees, telephone, start_date, end_date FROM affiliate WHERE affiliate_id=${affId} LIMIT 1`);
 
   const aff = rows?.[0];
   const name = `${aff?.firstname || ""} ${aff?.lastname || ""}`.trim();
@@ -194,14 +189,21 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
         to: aff.email,
         name,
         affiliateId: affId,
+        store_name: aff.store_name,
+        fees: money(aff.fees),
+        telephone: aff.telephone,
+        start_date: formatDate(aff.start_date),
+        end_date: formateDate(aff.end_date)
       });
     } else {
       await sendSubscriptionRenewedEmail({
         to: aff.email,
         name,
         affiliateId: affId,
-        amount,
+        store_name: aff.store_name,
+        amount: money(aff.fees),
         invoiceId: invoice.id,
+        end_date: formatDate(aff.end_date)
       });
     }
   }
@@ -234,13 +236,14 @@ async function markFailedAndInsertPayment({ affiliate_id, invoice, subscriptionI
   await db.query(`INSERT INTO affiliate_payment SET affiliate_id=${affId}, payment_charge_id='', invoice_number='', description='Payment Failed!', amount='', start_date='0000-00-00 00:00:00', end_date='0000-00-00 00:00:00', payment_status=${payment_status}, date_added=NOW()`);
 
   // Send email
-  const [rows] = await db.query(`SELECT email, firstname, lastname FROM affiliate WHERE affiliate_id=${affId} LIMIT 1`);
+  const [rows] = await db.query(`SELECT store_name, email, firstname, lastname FROM affiliate WHERE affiliate_id=${affId} LIMIT 1`);
 
   const aff = rows?.[0];
   if (aff?.email) {
     await sendPaymentFailedEmail({
       to: aff.email,
       name: `${aff.firstname || ""} ${aff.lastname || ""}`.trim(),
+      store_name: aff.store_name,
       invoiceId: invoice.id,
       affiliateId: affId,
     });

@@ -75,10 +75,10 @@ export default function Footer() {
         </div>
 
         <div className={styles.bottomBar}>
-          <div>© {year} Church Suits Business. All rights reserved.</div>
+          <div>© {year} ${storeName}. All rights reserved.</div>
 
           <div className={styles.bottomLinks}>
-            <Link href="/about" className={styles.footerLink}>About Us</Link>
+            <Link href="/about-us" className={styles.footerLink}>About Us</Link>
             <Link href="/privacy" className={styles.footerLink}>Privacy</Link>
             <Link href="/terms" className={styles.footerLink}>Terms</Link>
             <Link href="/contact" className={styles.footerLink}>Contact</Link>
