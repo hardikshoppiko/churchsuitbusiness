@@ -162,11 +162,13 @@ We Ship Fashion Team
   `.trim();
 
   // For testing only
-  // const to_email = to;
-  const to_email = "hardik.shoppiko@gmail.com";
+  const to_email = to;
+  // const to_email = "hardik.shoppiko@gmail.com";
 
   try {
     await sendHtml(to_email, subject, html, text);
+    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -376,11 +378,13 @@ This is an automated message confirming your subscription activation.
   `.trim();
 
   // For testing only
-  const to_email = "hardik.shoppiko@gmail.com";
-  // const to_email = to;
+  // const to_email = "hardik.shoppiko@gmail.com";
+  const to_email = to;
 
   try {
     await sendHtml(to_email, subject, html, text);
+    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -573,11 +577,13 @@ ${brandName} Team
   `.trim();
 
   // For testing only
-  const to_email = "hardik.shoppiko@gmail.com";
-  // const to_email = to;
+  // const to_email = "hardik.shoppiko@gmail.com";
+  const to_email = to;
 
   try {
-    await sendHtml(to_email, subject, html, text);
+    // await sendHtml(to_email, subject, html, text);
+    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -725,12 +731,14 @@ Thank you,
 ${storeName} Team
   `.trim();
 
-  // let to_email = to;
+  let to_email = to;
 
-  let to_email = 'hardik.shoppiko@gmail.com';
+  // let to_email = 'hardik.shoppiko@gmail.com';
 
   try {
     await sendHtml(to_email, subject, html, text);
+    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -832,7 +840,9 @@ ${storeName || "Affiliate Program"} Team
 
   try {
     // IMPORTANT: send to real recipient
-    await sendHtml(`hardik.shoppiko@gmail.com`, subject, html, text);
+    await sendHtml(to, subject, html, text);
+    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Forgot password email failed", e);
   }
