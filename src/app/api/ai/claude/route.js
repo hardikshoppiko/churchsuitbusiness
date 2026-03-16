@@ -929,6 +929,8 @@ async function handleReadPdfFileText(body) {
   try {
     pdfUrl = body?.pdf_url;
 
+    console.log('Received PDF URL:', pdfUrl);
+
     if (!pdfUrl) {
       return Response.json(
         {
@@ -938,8 +940,6 @@ async function handleReadPdfFileText(body) {
         { status: 400 }
       );
     }
-
-    console.log('Received PDF URL:', pdfUrl);
 
     // Validate URL format
     try {
