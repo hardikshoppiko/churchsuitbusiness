@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
-  PaymentElement,
+  CardElement,
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
@@ -30,13 +30,18 @@ function Inner({ clientSecret, onSuccess, onError }) {
     if (!stripe || !elements) return;
 
     setSubmitting(true);
+
     try {
-      const { error, setupIntent } = await stripe.confirmSetup({
-        elements,
-        confirmParams: {
-          return_url: window.location.href,
+      const cardElement = elements.getElement(CardElement);
+
+      if (!cardElement) {
+        throw new Error("Card form is not ready");
+      }
+
+      const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+        payment_method: {
+          card: cardElement,
         },
-        redirect: "if_required",
       });
 
       if (error) throw new Error(error.message || "Failed to add card");
@@ -87,7 +92,24 @@ function Inner({ clientSecret, onSuccess, onError }) {
 
         <div className={styles.formBody}>
           <div className={styles.paymentElementArea}>
-            <PaymentElement />
+            <CardElement
+              options={{
+                hidePostalCode: true,
+                style: {
+                  base: {
+                    fontSize: "14px",
+                    color: "#1f2937",
+                    fontFamily: "Arial, Helvetica, sans-serif",
+                    "::placeholder": {
+                      color: "#9ca3af",
+                    },
+                  },
+                  invalid: {
+                    color: "#dc2626",
+                  },
+                },
+              }}
+            />
           </div>
         </div>
       </div>
@@ -114,6 +136,7 @@ export default function AddCardForm({ onSuccess, onError }) {
     async function init() {
       setLoading(true);
       setErr("");
+
       try {
         const res = await fetch("/api/affiliate/credit-cards", {
           method: "POST",
@@ -147,52 +170,6 @@ export default function AddCardForm({ onSuccess, onError }) {
     return clientSecret
       ? {
           clientSecret,
-          appearance: {
-            theme: "stripe",
-            variables: {
-              colorPrimary: "#7d48c8",
-              colorText: "#1f2937",
-              colorTextSecondary: "#6b7280",
-              colorDanger: "#dc2626",
-              colorBackground: "#ffffff",
-              colorIcon: "#7d48c8",
-              borderRadius: "12px",
-              fontSizeBase: "14px",
-              spacingUnit: "3px",
-            },
-            rules: {
-              ".Input": {
-                border: "1px solid #e9d8fd",
-                boxShadow: "none",
-                padding: "10px 12px",
-              },
-              ".Input:focus": {
-                border: "1px solid #c4b5fd",
-                boxShadow: "0 0 0 3px rgba(125,72,200,0.10)",
-              },
-              ".Label": {
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "#374151",
-              },
-              ".Tab": {
-                border: "1px solid #e9d8fd",
-                boxShadow: "none",
-                backgroundColor: "#ffffff",
-              },
-              ".Tab:hover": {
-                color: "#7d48c8",
-              },
-              ".Tab--selected": {
-                borderColor: "#c4b5fd",
-                backgroundColor: "#faf7ff",
-                color: "#7d48c8",
-              },
-              ".Block": {
-                boxShadow: "none",
-              },
-            },
-          },
         }
       : null;
   }, [clientSecret]);
