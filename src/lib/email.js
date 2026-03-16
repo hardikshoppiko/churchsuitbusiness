@@ -1,6 +1,8 @@
 // src/lib/email.js
 import { sendHtml } from "@/lib/sendgrid-email";
 
+const BCC_EMAILS = ['weshipfashionstech@gmail.com', 'hardik.shoppiko@gmail.com'];
+
 export async function sendPaymentFailedEmail({ to, name, store_name, invoiceId, affiliateId }) {
   const brandName = process.env.STORE_NAME || "Church Suits Business";
   const supportPhone = "908-297-8710";
@@ -166,9 +168,9 @@ We Ship Fashion Team
   // const to_email = "hardik.shoppiko@gmail.com";
 
   try {
-    await sendHtml(to_email, subject, html, text);
-    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS });
+    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -381,10 +383,12 @@ This is an automated message confirming your subscription activation.
   // const to_email = "hardik.shoppiko@gmail.com";
   const to_email = to;
 
+  // console.log(BCC_EMAILS);
+
   try {
-    await sendHtml(to_email, subject, html, text);
-    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS });
+    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -580,10 +584,12 @@ ${brandName} Team
   // const to_email = "hardik.shoppiko@gmail.com";
   const to_email = to;
 
+  const bcc = ['hardik.shoppiko@gmail.com'];
+
   try {
     // await sendHtml(to_email, subject, html, text);
-    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text, { bcc: bcc });
+    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -736,9 +742,9 @@ ${storeName} Team
   // let to_email = 'hardik.shoppiko@gmail.com';
 
   try {
-    await sendHtml(to_email, subject, html, text);
-    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS });    
+    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -840,9 +846,9 @@ ${storeName || "Affiliate Program"} Team
 
   try {
     // IMPORTANT: send to real recipient
-    await sendHtml(to, subject, html, text);
-    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to, subject, html, text, { bcc: BCC_EMAILS });
+    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
+    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Forgot password email failed", e);
   }
