@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
-  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
@@ -17,6 +19,24 @@ import styles from "./AddCardForm.module.css";
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
 );
+
+const stripeFieldOptions = {
+  style: {
+    base: {
+      fontSize: "15px",
+      color: "#1f2937",
+      fontFamily: "Arial, Helvetica, sans-serif",
+      "::placeholder": {
+        color: "#9ca3af",
+      },
+      iconColor: "#7d48c8",
+    },
+    invalid: {
+      color: "#dc2626",
+      iconColor: "#dc2626",
+    },
+  },
+};
 
 function Inner({ clientSecret, onSuccess, onError }) {
   const stripe = useStripe();
@@ -32,15 +52,15 @@ function Inner({ clientSecret, onSuccess, onError }) {
     setSubmitting(true);
 
     try {
-      const cardElement = elements.getElement(CardElement);
+      const cardNumberElement = elements.getElement(CardNumberElement);
 
-      if (!cardElement) {
+      if (!cardNumberElement) {
         throw new Error("Card form is not ready");
       }
 
       const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
         payment_method: {
-          card: cardElement,
+          card: cardNumberElement,
         },
       });
 
@@ -91,25 +111,27 @@ function Inner({ clientSecret, onSuccess, onError }) {
         </div>
 
         <div className={styles.formBody}>
-          <div className={styles.paymentElementArea}>
-            <CardElement
-              options={{
-                hidePostalCode: true,
-                style: {
-                  base: {
-                    fontSize: "14px",
-                    color: "#1f2937",
-                    fontFamily: "Arial, Helvetica, sans-serif",
-                    "::placeholder": {
-                      color: "#9ca3af",
-                    },
-                  },
-                  invalid: {
-                    color: "#dc2626",
-                  },
-                },
-              }}
-            />
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Card Number</label>
+            <div className={styles.stripeField}>
+              <CardNumberElement options={stripeFieldOptions} />
+            </div>
+          </div>
+
+          <div className={styles.twoColRow}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Expiry Date</label>
+              <div className={styles.stripeField}>
+                <CardExpiryElement options={stripeFieldOptions} />
+              </div>
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Security Code</label>
+              <div className={styles.stripeField}>
+                <CardCvcElement options={stripeFieldOptions} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
