@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import SuccessClient from "./success-client";
+import SuccessClearStorage from "./success-clear-storage";
+
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -201,6 +203,8 @@ export default async function PaymentSuccessPage({ params, searchParams }) {
 
   return (
     <main className={styles.pageWrap}>
+      <SuccessClearStorage />
+      
       {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroGlow}>

@@ -1,5 +1,10 @@
+import Link from "next/link";
+
 import PaymentClient from "./payment-client";
-import { getAffiliate } from "@/lib/affiliate";
+import PaymentBackButton from "./payment-back-button";
+
+import { getAffiliate, getAffiliatePlans } from "@/lib/affiliate";
+import { money } from "@/lib/db-utils";
 
 import styles from "./page.module.css";
 
@@ -13,7 +18,11 @@ export default async function PaymentPage({ params }) {
   const { affiliate_id } = await params;
 
   const affiliateId = Number(affiliate_id);
-  const affiliate_info = await getAffiliate(affiliateId);
+
+  const [affiliate_info, plans] = await Promise.all([
+    getAffiliate(affiliateId),
+    getAffiliatePlans(),
+  ]);
 
   let telephone = affiliate_info?.telephone || "";
   if (telephone && telephone.length > 10) {
@@ -27,6 +36,26 @@ export default async function PaymentPage({ params }) {
       .join("");
   }
 
+  const selectedPlan =
+    plans.find(
+      (plan) =>
+        String(plan.affiliate_plan_id) ===
+        String(
+          affiliate_info?.affiliate_plan_id ||
+            affiliate_info?.affiliate_type ||
+            ""
+        )
+    ) || null;
+
+  const selectedPlanName =
+    selectedPlan?.name || affiliate_info?.plan_name || "Not selected";
+
+  const selectedPlanPrice =
+    selectedPlan?.fees ??
+    affiliate_info?.fees ??
+    affiliate_info?.plan_price ??
+    0;
+
   return (
     <main className={styles.page}>
       {/* Header */}
@@ -38,6 +67,10 @@ export default async function PaymentPage({ params }) {
 
         <div className={styles.heroInner}>
           <div className={styles.badge}>Final Step</div>
+
+          <div className={styles.heroTopRow}>
+            <PaymentBackButton />
+          </div>
 
           <h1 className={styles.title}>Complete Subscription Payment</h1>
 
@@ -97,12 +130,31 @@ export default async function PaymentPage({ params }) {
               </div>
             </div>
 
+            {/* New Plan Details */}
+            <div className={styles.infoGrid}>
+              <div className={styles.infoBox}>
+                <div className={styles.infoLabel}>Selected Plan</div>
+                <div className={styles.infoValueSmall}>{selectedPlanName}</div>
+              </div>
+
+              <div className={styles.infoBox}>
+                <div className={styles.infoLabel}>Subscription Price</div>
+                <div className={styles.infoValueSmall}>
+                  {money(selectedPlanPrice)} / month
+                </div>
+              </div>
+            </div>
+
             <div className={styles.noticeBox}>
               <div className={styles.noticeTitle}>Secure Payment</div>
               <p className={styles.noticeText}>
                 Payments are processed by Stripe. Your card details are never
                 stored on our server.
               </p>
+            </div>
+
+            <div className={styles.heroTopRow}>
+              <PaymentBackButton />
             </div>
           </div>
         </aside>

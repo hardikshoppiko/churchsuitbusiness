@@ -38,10 +38,24 @@ function handleOpenTerms() {
   });
 }
 
+function makeDomainFromBusinessName(value) {
+  const slug = String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug ? `${slug}.com` : "";
+}
+
 /* ================================
    LocalStorage
 ================================ */
-const LS_KEY = process.env.LS_KEY || "affiliate_register_wizard_v1";
+const LS_KEY =
+  process.env.NEXT_PUBLIC_LS_KEY || "affiliate_register_wizard_v1";
 
 function safeJsonParse(v) {
   try {
@@ -191,6 +205,8 @@ export default function RegisterWizardForm({
   const [isRestored, setIsRestored] = useState(false);
   const [persistEnabled, setPersistEnabled] = useState(true);
 
+  const [websiteTouched, setWebsiteTouched] = useState(false);
+
   const defaultPlanId = useMemo(() => {
     return plans?.[0]?.affiliate_plan_id
       ? String(plans[0].affiliate_plan_id)
@@ -235,19 +251,22 @@ export default function RegisterWizardForm({
   /* ---------- Restore wizard ---------- */
   useEffect(() => {
     const saved = loadWizard();
+
     if (!saved) {
       setIsRestored(true);
       return;
     }
 
-    if (saved.affiliateId) setAffiliateId(saved.affiliateId);
-    if (saved.step) setStep(saved.step);
+    if (saved.affiliateId) {
+      setAffiliateId(Number(saved.affiliateId));
+    }
 
-    if (saved.values) {
-      reset({
-        ...getValues(),
-        ...saved.values,
-      });
+    if (saved.step) {
+      setStep(Number(saved.step));
+    }
+
+    if (saved.values && typeof saved.values === "object") {
+      reset(saved.values);
     }
 
     setIsRestored(true);
@@ -259,6 +278,7 @@ export default function RegisterWizardForm({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!persistEnabled) return;
+    if (!isRestored) return;
 
     saveWizard({
       step,
@@ -266,10 +286,42 @@ export default function RegisterWizardForm({
       values: allValues,
       savedAt: Date.now(),
     });
-  }, [allValues, step, affiliateId, persistEnabled]);
+  }, [allValues, step, affiliateId, persistEnabled, isRestored]);
 
   const selectedCountryId = watch("country_id");
   const selectedPlanId = watch("affiliate_plan_id");
+  const businessNameValue = watch("business_name");
+
+  useEffect(() => {
+    if (!isRestored) return;
+    if (websiteTouched) return;
+    if (step !== 2) return;
+
+    const generated = makeDomainFromBusinessName(businessNameValue || "");
+    if (!generated) return;
+
+    const currentWebsite = String(getValues("website") || "").trim();
+
+    if (currentWebsite !== generated) {
+      setValue("website", generated, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      setDomainInfo(null);
+      setValue("is_domain_available", 0);
+      setValue("is_domain_avaibility_checked", 0);
+      setValue("is_customer_own_domain", 0);
+      setOwnDomainChecked(false);
+    }
+  }, [
+    businessNameValue,
+    websiteTouched,
+    isRestored,
+    step,
+    setValue,
+    getValues,
+  ]);
 
   /* ---------- Zones ---------- */
   async function fetchZones(country_id, keepZoneId) {
@@ -413,6 +465,7 @@ export default function RegisterWizardForm({
     const domain = String(d || "").trim();
     if (!domain) return;
 
+    setWebsiteTouched(true);
     setValue("website", domain, {
       shouldValidate: true,
       shouldDirty: true,
@@ -741,11 +794,12 @@ export default function RegisterWizardForm({
 
     const finalAffiliateId = affiliateId;
 
-    setPersistEnabled(false);
-    clearWizard();
-
-    setAffiliateId(null);
-    setStep(1);
+    saveWizard({
+      step: 3,
+      affiliateId: finalAffiliateId,
+      values: getValues(),
+      savedAt: Date.now(),
+    });
 
     router.push(`/register/payment/${finalAffiliateId}`);
   }
@@ -791,7 +845,6 @@ export default function RegisterWizardForm({
         </div>
 
         <div className={styles.wizardGrid}>
-          {/* Left: sidebar */}
           <div className={styles.sidebar}>
             <div className={styles.sidebarIntro}>
               <div className={styles.sidebarEyebrow}>Affiliate Registration</div>
@@ -857,9 +910,7 @@ export default function RegisterWizardForm({
             ) : null}
           </div>
 
-          {/* Right: form */}
           <div className={styles.formSide}>
-            {/* Mobile step indicator */}
             <div className={styles.mobileStepBox}>
               <div className={styles.mobileStepHead}>
                 <div className={styles.mobileStepTitle}>Affiliate Registration</div>
@@ -900,7 +951,6 @@ export default function RegisterWizardForm({
                 onSubmit={(e) => e.preventDefault()}
                 className={styles.form}
               >
-                {/* STEP 1 */}
                 {step === 1 ? (
                   <div className={styles.sectionStack}>
                     <div className={styles.twoColGrid}>
@@ -1004,7 +1054,6 @@ export default function RegisterWizardForm({
                   </div>
                 ) : null}
 
-                {/* STEP 2 */}
                 {step === 2 ? (
                   <div className={styles.sectionStack}>
                     <div className={styles.sectionStack}>
@@ -1041,9 +1090,29 @@ export default function RegisterWizardForm({
                                   })}
                                 />
 
+                                <div className={styles.planSelectIconWrap}>
+                                  <span
+                                    className={cn(
+                                      styles.planSelectIcon,
+                                      active ? styles.planSelectIconActive : ""
+                                    )}
+                                  >
+                                    <span className={styles.planSelectDot} />
+                                  </span>
+                                </div>
+
                                 <div className={styles.planContent}>
-                                  <div className={styles.planHead}>
-                                    <div className={styles.planName}>{p.name}</div>
+                                  <div className={styles.planTopRow}>
+                                    <div className={styles.planTitleWrap}>
+                                      <div className={styles.planName}>{p.name}</div>
+
+                                      {active ? (
+                                        <div className={styles.planSelectedBadge}>
+                                          Selected
+                                        </div>
+                                      ) : null}
+                                    </div>
+
                                     <div className={styles.planPrice}>
                                       {money(p.fees)}/mo
                                     </div>
@@ -1051,9 +1120,15 @@ export default function RegisterWizardForm({
 
                                   {p.tag_line ? (
                                     <div className={styles.planTagline}>
-                                      {p.tag_line}
+                                      {String(p.tag_line || "").replace(/&amp;/g, "&")}
                                     </div>
                                   ) : null}
+
+                                  <div className={styles.planBottomRow}>
+                                    <div className={styles.planMiniText}>
+                                      Monthly affiliate subscription
+                                    </div>
+                                  </div>
                                 </div>
                               </label>
                             );
@@ -1127,15 +1202,40 @@ export default function RegisterWizardForm({
                               );
                             },
                           })}
-                          onBlur={() => {
-                            const v = String(getValues("website") || "").trim();
-                            if (!v) return;
-                            const ok =
-                              /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(v) &&
-                              !/\s/.test(v);
-                            if (ok) checkDomainAvaibilityStatus(v);
+                          onChange={(e) => {
+                            setWebsiteTouched(true);
+                            setValue("website", e.target.value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+
+                            setDomainInfo(null);
+                            setValue("is_domain_available", 0);
+                            setValue("is_domain_avaibility_checked", 0);
+                            setValue("is_customer_own_domain", 0);
+                            setOwnDomainChecked(false);
                           }}
                         />
+
+                        <Button
+                          type="button"
+                          className={styles.websiteCheckBtn}
+                          disabled={
+                            domainChecking ||
+                            !String(getValues("website") || "").trim()
+                          }
+                          onClick={async () => {
+                            const ok = await trigger("website");
+                            if (!ok) return;
+
+                            const v = String(getValues("website") || "").trim();
+                            if (!v) return;
+
+                            checkDomainAvaibilityStatus(v);
+                          }}
+                        >
+                          {domainChecking ? "Checking..." : "Check"}
+                        </Button>
                       </div>
 
                       <input
@@ -1216,7 +1316,6 @@ export default function RegisterWizardForm({
                   </div>
                 ) : null}
 
-                {/* STEP 3 */}
                 {step === 3 ? (
                   <div className={styles.sectionStack}>
                     <Field
@@ -1235,10 +1334,7 @@ export default function RegisterWizardForm({
                       />
                     </Field>
 
-                    <Field
-                      label="Address 2"
-                      error={errors.address_2?.message}
-                    >
+                    <Field label="Address 2" error={errors.address_2?.message}>
                       <Input
                         {...register("address_2")}
                         className={styles.inputBase}
@@ -1430,7 +1526,6 @@ export default function RegisterWizardForm({
                   </div>
                 ) : null}
 
-                {/* Footer */}
                 <div className={styles.footerActions}>
                   <Button
                     variant="outline"
