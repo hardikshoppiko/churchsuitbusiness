@@ -168,9 +168,8 @@ We Ship Fashion Team
   // const to_email = "hardik.shoppiko@gmail.com";
 
   try {
-    await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS });
-    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to_email, subject, html, text);
+    // await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS }); // if you want to send bcc emails
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -383,12 +382,9 @@ This is an automated message confirming your subscription activation.
   // const to_email = "hardik.shoppiko@gmail.com";
   const to_email = to;
 
-  // console.log(BCC_EMAILS);
-
   try {
-    await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS });
-    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to_email, subject, html, text);
+    // await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS }); // if you want to send bcc emails
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -588,7 +584,7 @@ ${brandName} Team
 
   try {
     // await sendHtml(to_email, subject, html, text);
-    await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text, { bcc: bcc });
+    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text, { bcc: bcc });
     // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
@@ -742,9 +738,8 @@ ${storeName} Team
   // let to_email = 'hardik.shoppiko@gmail.com';
 
   try {
-    await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS });    
-    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to_email, subject, html, text);
+    // await sendHtml(to_email, subject, html, text, { bcc: BCC_EMAILS }); // if you want to send bcc emails
   } catch (e) {
     console.log("Email failed", e);
   }
@@ -846,10 +841,216 @@ ${storeName || "Affiliate Program"} Team
 
   try {
     // IMPORTANT: send to real recipient
-    await sendHtml(to, subject, html, text, { bcc: BCC_EMAILS });
-    // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text);
-    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml(to, subject, html, text);
+    // await sendHtml(to, subject, html, text, { bcc: BCC_EMAILS }); // if you want to send bcc emails
   } catch (e) {
     console.log("Forgot password email failed", e);
+  }
+}
+
+export async function sendSubscriptionCancelledEmail({ affiliateId, to, owner_name, store_name, website, telephone }) {
+  const brandName = process.env.STORE_NAME || "Church Suits Business";
+  const supportPhone = "908-297-8710";
+
+  const safeOwnerName = owner_name ? String(owner_name).trim() : "N/A";
+  const safeStoreName = store_name ? String(store_name).trim() : "N/A";
+  const safeAffiliateId = affiliateId ? String(affiliateId).trim() : "N/A";
+  const safeTelephone = telephone ? String(telephone).trim() : "N/A";
+
+  let normalizedWebsite = String(website || "").trim();
+  if (normalizedWebsite && !/^https?:\/\//i.test(normalizedWebsite)) {
+    normalizedWebsite = `https://${normalizedWebsite}`;
+  }
+
+  const safeWebsiteText = normalizedWebsite || "N/A";
+  const websiteHtml = normalizedWebsite
+    ? `<a href="${normalizedWebsite}" style="color:#7d48c8; font-weight:700; text-decoration:none;">${normalizedWebsite}</a>`
+    : "N/A";
+
+  const subject = `Affiliate Subscription Cancel - ${safeStoreName}`;
+
+  const emailLink = `<a href="mailto:${to}" style="color:#7d48c8; font-weight:700; text-decoration:none;">${to}</a>`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${subject}</title>
+      </head>
+      <body style="margin:0; padding:0; background-color:#f6f0ff; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; background:linear-gradient(180deg, #f8f3ff 0%, #fffaff 100%); margin:0; padding:30px 12px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:680px; background:#ffffff; border:1px solid #eadcff; border-radius:28px; overflow:hidden; box-shadow:0 20px 50px rgba(125,72,200,0.12);">
+
+                <tr>
+                  <td style="background:linear-gradient(135deg, #8e57d8 0%, #7d48c8 55%, #6d38bb 100%); padding:36px 30px; text-align:center;">
+                    <div style="font-size:13px; line-height:1; letter-spacing:1.6px; text-transform:uppercase; color:#f4eefe; font-weight:700;">
+                      ${brandName}
+                    </div>
+
+                    <div style="margin-top:14px; font-size:32px; line-height:1.2; font-weight:700; color:#ffffff;">
+                      Subscription Cancelled
+                    </div>
+
+                    <div style="margin-top:10px; font-size:15px; line-height:1.85; color:#efe7ff;">
+                      Internal notification for cancelled affiliate subscription.
+                    </div>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:34px 30px 18px;">
+                    <div style="font-size:24px; line-height:1.3; font-weight:700; color:#111827;">
+                      Hello Admin,
+                    </div>
+
+                    <div style="margin-top:14px; font-size:15px; line-height:1.9; color:#4b5563;">
+                      This is an internal alert to notify you that an affiliate subscription has been cancelled successfully. The related affiliate account may now be inactive based on your cancellation workflow.
+                    </div>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:24px; border:1px solid #eadcff; border-radius:22px; background:#fcf9ff;">
+                      <tr>
+                        <td style="padding:22px 22px;">
+                          <div style="font-size:13px; line-height:1.4; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; color:#7d48c8;">
+                            Cancellation Details
+                          </div>
+
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:14px;">
+
+                            <tr>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280;">
+                                Affiliate ID
+                              </td>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700;">
+                                ${safeAffiliateId}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280; width:170px;">
+                                Store Name
+                              </td>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700;">
+                                ${safeStoreName}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280;">
+                                Owner Name
+                              </td>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700;">
+                                ${safeOwnerName}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280;">
+                                Website
+                              </td>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700; word-break:break-word;">
+                                ${websiteHtml}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280;">
+                                Email
+                              </td>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700;">
+                                ${emailLink}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280;">
+                                Telephone
+                              </td>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700;">
+                                ${safeTelephone}
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:18px; border:1px solid #f5d0fe; border-radius:20px; background:#fff7fb;">
+                      <tr>
+                        <td style="padding:18px 20px;">
+                          <div style="font-size:15px; line-height:1.5; font-weight:700; color:#a21caf;">
+                            Recommended Follow-Up
+                          </div>
+                          <div style="margin-top:8px; font-size:14px; line-height:1.85; color:#4b5563;">
+                            Please review this affiliate account, confirm cancellation status, and take any required internal follow-up actions if needed.
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:24px;">
+                      <tr>
+                        <td style="padding:0;">
+                          <div style="font-size:14px; line-height:1.9; color:#6b7280;">
+                            This message was generated automatically for administrative tracking and review.
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:22px 30px 30px; border-top:1px solid #f3e8ff; background:#fffcff;">
+                    <div style="font-size:13px; line-height:1.9; color:#6b7280;">
+                      Regards,<br />
+                      <span style="font-weight:700; color:#374151;">${brandName} System</span>
+                    </div>
+
+                    <div style="margin-top:14px; font-size:12px; line-height:1.8; color:#9ca3af;">
+                      This is an automated admin notification for subscription cancellation.
+                    </div>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const text = `
+Hello Admin,
+
+This is an internal alert to notify you that an affiliate subscription has been cancelled successfully.
+
+Cancellation Details:
+- Affiliate ID: ${safeAffiliateId}
+- Store Name: ${safeStoreName}
+- Owner Name: ${safeOwnerName}
+- Website: ${safeWebsiteText}
+- Email: ${emailLink}
+- Telephone: ${telephone}
+
+Recommended Follow-Up:
+Please review this affiliate account, confirm cancellation status, and take any required internal follow-up actions if needed.
+
+Regards,
+${brandName} System
+
+This is an automated admin notification for subscription cancellation.
+  `.trim();
+
+  const bcc = ['hardik.shoppiko@gmail.com'];
+
+  try {
+    await sendHtml('weshipfashionstech@gmail.com', subject, html, text, { bcc: bcc });
+  } catch (e) {
+    console.log("Email failed", e);
   }
 }

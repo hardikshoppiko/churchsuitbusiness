@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { dbEscape, formatDate, money } from "@/lib/db-utils";
 
-import { sendPaymentFailedEmail, sendSubscriptionActivatedEmail, sendSubscriptionRenewedEmail, sendSubscriptionUpdatedEmail } from "@/lib/email";
+import { sendPaymentFailedEmail, sendSubscriptionActivatedEmail, sendSubscriptionRenewedEmail, sendSubscriptionUpdatedEmail, sendSubscriptionCancelledEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -139,6 +139,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
         approved=1,
         status=1,
         stripe_customer_id='${dbEscape(String(customerId || ""))}',
+        recurring_billing=1,
         recurring_billing_id='${dbEscape(String(subscriptionId || ""))}',
         end_date=DATE_ADD(NOW(), INTERVAL 30 DAY),
         date_modified=NOW()
@@ -363,14 +364,22 @@ export async function POST(req) {
           invoice: invoice.id,
         });
       }
-
+      
       // Disable affiliate_user only on first payment
       await db.query(`UPDATE affiliate_user SET status=0, date_modified=NOW() WHERE affiliate_id=${affiliate_info.affiliate_id}`);
       
       // Disable Affiliate
       await db.query(`UPDATE affiliate SET status=0, date_modified=NOW(), date_update=NOW() WHERE affiliate_id=${affiliate_info.affiliate_id}`);
 
-      // send email here, in future
+      // send email
+      await sendSubscriptionCancelledEmail({
+        affiliateId: affiliate_info.affiliate_id,
+        to: affiliate_info.email,
+        owner_name: `${affiliate_info.firstname || ""} ${affiliate_info.lastname || ""}`.trim(),
+        store_name: affiliate_info.store_name,
+        website: affiliate_info.website,
+        telephone: affiliate_info.telephone
+      });
 
       return jsonOK({ received: true, event: event.type, affiliate_id: affiliate_info.affiliate_id });
     }

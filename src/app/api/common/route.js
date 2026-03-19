@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { money } from "@/lib/db-utils";
 
-import { sendSubscriptionActivatedEmail, sendSubscriptionRenewedEmail, sendSubscriptionUpdatedEmail, sendPaymentFailedEmail } from "@/lib/email";
+import { sendSubscriptionActivatedEmail, sendSubscriptionRenewedEmail, sendSubscriptionUpdatedEmail, sendPaymentFailedEmail, sendSubscriptionCancelledEmail } from "@/lib/email";
 
 // IMPORTANT for SendGrid
 export const runtime = "nodejs";
@@ -46,6 +46,16 @@ export async function GET() {
   //   store_name: 'Goddess Church Suits',
   //   invoiceId: 'in_1SqQ8XGfgBXyKatDTuyeKCg2',
   //   affiliateId: 2839
+  // });
+
+  // // Cancel Subscription Email
+  // await sendSubscriptionCancelledEmail({
+  //   affiliateId: 999999999,
+  //   to: `hardik.shoppiko@gmail.com`,
+  //   owner_name: `Hardik Shah`,
+  //   store_name: `Testing Store Name`,
+  //   website: `testingstore.com`,
+  //   telephone: `2018887493`
   // });
 
   console.log('send demo email to customer!');
