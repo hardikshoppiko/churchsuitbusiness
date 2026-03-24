@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
 import styles from "./page.module.css";
