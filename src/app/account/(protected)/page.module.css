@@ -2,429 +2,284 @@
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 18px;
+  padding: 16px;
 }
 
-.heroCard {
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.dashboardCard {
   position: relative;
   overflow: hidden;
   border: 1px solid #eadcff;
-  border-radius: 30px;
+  border-radius: 28px;
   background: linear-gradient(180deg, #fffaff 0%, #ffffff 100%);
-  box-shadow: 0 18px 48px rgba(125, 72, 200, 0.08);
+  box-shadow:
+    0 20px 42px rgba(125, 72, 200, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  min-height: 100%;
 }
 
-.heroGlow {
+.dashboardGlow {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  opacity: 0.78;
+  opacity: 0.82;
 }
 
-.heroGlowLeft {
+.dashboardGlowLeft {
   position: absolute;
-  top: -120px;
+  top: -110px;
   left: -120px;
-  width: 280px;
-  height: 280px;
+  width: 270px;
+  height: 270px;
   border-radius: 999px;
-  background: #d9b8ff;
+  background: #dcbcff;
   filter: blur(120px);
 }
 
-.heroGlowRight {
+.dashboardGlowRight {
   position: absolute;
   top: -120px;
   right: -120px;
   width: 280px;
   height: 280px;
   border-radius: 999px;
-  background: #efe2ff;
-  filter: blur(120px);
+  background: #f0e2ff;
+  filter: blur(130px);
 }
 
-.heroInner {
+.dashboardInner {
   position: relative;
   z-index: 2;
-  padding: 28px 24px;
+  padding: 26px 22px;
 }
 
-.heroTop {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.dashboardEyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 13px;
+  border: 1px solid #e5d5fa;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fbf5ff 0%, #f6edff 100%);
+  color: #7d48c8;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 16px rgba(125, 72, 200, 0.05);
 }
 
-.heroText {
+.dashboardTitle {
+  margin: 16px 0 0;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #121826;
+}
+
+.dashboardDesc {
+  margin: 12px 0 0;
+  max-width: 700px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #667085;
+}
+
+.dashboardInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.infoItem {
+  border: 1px solid #efe4ff;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(250, 247, 255, 0.95) 100%);
+  padding: 16px 16px;
+  box-shadow:
+    0 8px 18px rgba(125, 72, 200, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
   min-width: 0;
 }
 
-.heroEyebrow {
-  font-size: 13px;
-  font-weight: 700;
-  color: #7d48c8;
-  letter-spacing: 0.02em;
+.infoLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #8b5cc7;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.heroTitle {
-  margin: 8px 0 0;
-  font-size: 32px;
-  line-height: 1.12;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.02em;
-}
-
-.heroStore {
-  margin: 10px 0 0;
+.infoValue {
+  margin-top: 8px;
   font-size: 15px;
-  color: #6b7280;
-}
-
-.heroStoreStrong {
+  line-height: 1.55;
   font-weight: 700;
   color: #111827;
+  word-break: break-word;
 }
 
-.heroChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.heroChip {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #eadcff;
-  background: #faf7ff;
-  color: #6b7280;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.heroChipStrong {
-  color: #111827;
-  font-weight: 700;
-}
-
-.heroActions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.primaryButton {
-  border: 0 !important;
-  color: #ffffff !important;
-  background: linear-gradient(135deg, #9d6ce0 0%, #7d48c8 100%) !important;
-  box-shadow: 0 12px 24px rgba(125, 72, 200, 0.18);
-  min-width: 140px;
-}
-
-.secondaryButton {
-  border-color: #e3d3fa !important;
-  background: #ffffff !important;
-  color: #7d48c8 !important;
-  min-width: 140px;
-}
-
-.secondaryButtonFull {
-  width: 100%;
-  border-color: #e3d3fa !important;
-  background: #ffffff !important;
-  color: #7d48c8 !important;
-}
-
-.statsGrid {
-  margin-top: 22px;
+.rightStack {
   display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-.statCard {
+.sideCard {
   border: 1px solid #eadcff;
   border-radius: 22px;
-  background: #ffffff;
-  box-shadow: 0 14px 35px rgba(125, 72, 200, 0.05);
-  padding: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fcf9ff 100%);
+  box-shadow:
+    0 14px 32px rgba(125, 72, 200, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 20px 18px;
 }
 
-.statCardTop {
+.sideCardTop {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 
-.statCardText {
+.sideCardText {
   min-width: 0;
 }
 
-.statCardTitle {
-  font-size: 14px;
-  font-weight: 700;
-  color: #7d48c8;
-}
-
-.statCardValue {
-  margin-top: 10px;
-  font-size: 28px;
-  line-height: 1.1;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.03em;
-}
-
-.statCardSub {
-  margin-top: 6px;
+.sideCardTitle {
   font-size: 12px;
-  line-height: 1.6;
-  color: #6b7280;
-}
-
-.statCardIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 auto;
-  border-radius: 14px;
-  border: 1px solid #eadcff;
-  background: #faf7ff;
+  font-weight: 800;
   color: #7d48c8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.mainGrid {
-  margin-top: 22px;
-  display: grid;
-  gap: 22px;
-  grid-template-columns: 1fr;
-}
-
-.leftColumn,
-.rightColumn {
-  display: grid;
-  gap: 22px;
-}
-
-.panelCard {
-  border: 1px solid #eadcff;
-  border-radius: 26px;
-  background: #ffffff;
-  box-shadow: 0 14px 35px rgba(125, 72, 200, 0.05);
-  padding: 22px;
-}
-
-.timelineCard {
-  border: 1px solid #eadcff;
-  border-radius: 26px;
-  background: linear-gradient(180deg, #fcf9ff 0%, #ffffff 100%);
-  box-shadow: 0 14px 35px rgba(125, 72, 200, 0.05);
-  padding: 22px;
-}
-
-.panelHeader {
-  margin-bottom: 16px;
-}
-
-.panelTitle {
-  font-size: 20px;
-  font-weight: 700;
-  color: #111827;
+.sideCardValue {
+  margin-top: 10px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
   letter-spacing: -0.02em;
+  color: #111827;
 }
 
-.panelDesc {
-  margin-top: 6px;
-  font-size: 14px;
+.sideCardSub {
+  margin-top: 8px;
+  font-size: 13px;
   line-height: 1.7;
   color: #6b7280;
 }
 
-.panelTitleSmall {
-  font-size: 17px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 14px;
-}
-
-.quickGrid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr;
-}
-
-.quickLinkWrap {
-  display: block;
-  text-decoration: none;
-}
-
-.quickLinkCard {
-  border: 1px solid #eadcff;
-  border-radius: 20px;
-  background: #ffffff;
-  transition: all 0.2s ease;
-  padding: 16px;
-}
-
-.quickLinkCard:hover {
-  background: #faf7ff;
-  box-shadow: 0 12px 22px rgba(125, 72, 200, 0.08);
-  transform: translateY(-1px);
-}
-
-.quickLinkInner {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.quickLinkIcon {
+.sideCardIcon {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 42px;
   height: 42px;
   flex: 0 0 auto;
+  border: 1px solid #eadcff;
   border-radius: 14px;
-  border: 1px solid #eadcff;
-  background: #faf7ff;
+  background: linear-gradient(180deg, #faf7ff 0%, #f7efff 100%);
   color: #7d48c8;
+  box-shadow: 0 8px 16px rgba(125, 72, 200, 0.05);
 }
 
-.quickLinkText {
-  min-width: 0;
-}
-
-.quickLinkTitle {
-  font-size: 14px;
-  font-weight: 700;
-  color: #111827;
-}
-
-.quickLinkDesc {
-  margin-top: 4px;
-  font-size: 12px;
-  line-height: 1.7;
-  color: #6b7280;
-}
-
-.emptyState {
-  border: 1px solid #eadcff;
-  border-radius: 18px;
-  background: #faf7ff;
-  padding: 14px 16px;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.infoTable {
-  display: grid;
-}
-
-.infoRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0e6ff;
-}
-
-.infoRow:last-child {
-  border-bottom: 0;
-}
-
-.infoRowLabel {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.infoRowValue {
-  font-size: 14px;
-  font-weight: 700;
-  color: #111827;
-  text-align: right;
-  word-break: break-word;
-}
-
-.timelineRows {
-  display: grid;
-  gap: 10px;
-}
-
-.timelineRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.timelineStrong {
-  color: #111827;
-  font-weight: 700;
-  text-align: right;
-}
-
-.timelineNote {
-  margin-top: 14px;
-  border: 1px solid #eadcff;
-  border-radius: 18px;
-  background: #ffffff;
-  padding: 14px;
-  font-size: 13px;
-  line-height: 1.7;
-  color: #6b7280;
-}
-
-.timelineActions {
-  margin-top: 14px;
-  display: grid;
-  gap: 10px;
-}
-
-@media (min-width: 640px) {
-  .heroActions {
-    flex-direction: row;
-    flex-wrap: wrap;
+@media (min-width: 768px) {
+  .dashboardInner {
+    padding: 30px 24px;
   }
 
-  .statsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .dashboardInfoGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
   }
 
-  .quickGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .dashboardTitle {
+    font-size: 34px;
+  }
+
+  .infoValue {
+    font-size: 16px;
   }
 }
 
 @media (min-width: 1024px) {
   .pageWrap {
-    padding: 22px;
+    padding: 20px;
   }
 
-  .heroInner {
-    padding: 34px 30px;
+  .dashboardGrid {
+    grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.82fr);
+    align-items: start;
   }
 
-  .heroTop {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
+  .dashboardInner {
+    padding: 34px 28px;
   }
 
-  .statsGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .dashboardTitle {
+    font-size: 42px;
+  }
+}
+
+@media (max-width: 767px) {
+  .pageWrap {
+    padding: 12px;
   }
 
-  .mainGrid {
-    grid-template-columns: minmax(0, 1fr) 360px;
+  .dashboardCard {
+    border-radius: 22px;
+  }
+
+  .dashboardInner {
+    padding: 20px 16px;
+  }
+
+  .dashboardTitle {
+    font-size: 26px;
+    line-height: 1.18;
+  }
+
+  .dashboardDesc {
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  .dashboardInfoGrid {
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .infoItem {
+    border-radius: 15px;
+    padding: 14px;
+  }
+
+  .infoValue {
+    font-size: 15px;
+  }
+
+  .sideCard {
+    border-radius: 20px;
+    padding: 16px 15px;
+  }
+
+  .sideCardValue {
+    font-size: 22px;
+  }
+
+  .sideCardSub {
+    font-size: 13px;
+  }
+
+  .sideCardIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
   }
 }

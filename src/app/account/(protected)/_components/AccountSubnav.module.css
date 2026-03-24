@@ -1,0 +1,192 @@
+.wrap {
+  margin-bottom: 22px;
+}
+
+.desktopNav {
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #eadcff;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fffaff 0%, #ffffff 100%);
+  box-shadow:
+    0 18px 40px rgba(125, 72, 200, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.desktopLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #eadcff;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff 0%, #fcf9ff 100%);
+  color: #667085;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.desktopLink:hover {
+  transform: translateY(-1px);
+  color: #7d48c8;
+  border-color: #d8c2fa;
+  background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
+  box-shadow: 0 10px 20px rgba(125, 72, 200, 0.08);
+}
+
+.desktopLinkActive {
+  color: #ffffff;
+  border-color: #7d48c8;
+  background: linear-gradient(135deg, #a56ee8 0%, #8e57d8 55%, #7d48c8 100%);
+  box-shadow:
+    0 14px 28px rgba(125, 72, 200, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.desktopLinkDanger {
+  color: #cf2f2f;
+}
+
+.desktopLinkDanger:hover {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: linear-gradient(180deg, #ffffff 0%, #fff5f5 100%);
+  box-shadow: 0 10px 20px rgba(220, 38, 38, 0.08);
+}
+
+.desktopLinkIcon {
+  font-size: 13px;
+}
+
+.mobileNav {
+  border: 1px solid #eadcff;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffaff 0%, #ffffff 100%);
+  box-shadow:
+    0 14px 30px rgba(125, 72, 200, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+}
+
+.mobileBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+}
+
+.mobileCurrent {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mobileCurrentIcon {
+  color: #7d48c8;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.mobileToggle {
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  border-color: #eadcff !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #7d48c8 !important;
+  box-shadow: none !important;
+  flex: 0 0 auto;
+}
+
+.mobileToggleIcon {
+  font-size: 14px;
+}
+
+.mobileMenu {
+  display: grid;
+  border-top: 1px solid #f0e6ff;
+  background: linear-gradient(180deg, #fffaff 0%, #ffffff 100%);
+}
+
+.mobileMenuLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  padding: 0 14px;
+  color: #667085;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #f7efff;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.mobileMenuLink:last-child {
+  border-bottom: 0;
+}
+
+.mobileMenuLink:hover {
+  background: #faf7ff;
+  color: #7d48c8;
+}
+
+.mobileMenuLinkActive {
+  background: linear-gradient(90deg, rgba(125, 72, 200, 0.08) 0%, rgba(125, 72, 200, 0.02) 100%);
+  color: #7d48c8;
+}
+
+.mobileMenuLinkDanger {
+  color: #cf2f2f;
+}
+
+.mobileMenuLinkDanger:hover {
+  background: #fff5f5;
+  color: #dc2626;
+}
+
+.mobileMenuLinkLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mobileMenuLinkIcon {
+  width: 16px;
+  text-align: center;
+  font-size: 13px;
+  flex: 0 0 auto;
+}
+
+.mobileMenuArrow {
+  font-size: 13px;
+  color: #9ca3af;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .desktopNav {
+    flex-wrap: wrap;
+  }
+}

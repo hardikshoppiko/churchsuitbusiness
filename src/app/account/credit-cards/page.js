@@ -1,5 +1,7 @@
 import { headers } from "next/headers";
 
+import AccountSubnav from "../(protected)/_components/AccountSubnav";
+
 import CreditCardsClient from "./CreditCardsClient";
 import styles from "./page.module.css";
 
@@ -27,6 +29,9 @@ export default async function CreditCardsPage() {
 
   return (
     <main className={styles.pageWrap}>
+
+      <AccountSubnav active="/account/credit-cards" />
+
       <section className={styles.heroCard}>
         <div className={styles.heroGlow}>
           <div className={styles.heroGlowLeft} />

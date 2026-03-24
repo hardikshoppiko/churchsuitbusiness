@@ -1,5 +1,7 @@
 import { headers } from "next/headers";
 
+import AccountSubnav from "../(protected)/_components/AccountSubnav";
+
 import ProfileForm from "./ProfileForm";
 import styles from "./page.module.css";
 
@@ -28,6 +30,8 @@ export default async function ProfilePage() {
 
   return (
     <main className={styles.pageWrap}>
+      <AccountSubnav active="/account/profile" />
+
       <section className={styles.heroCard}>
         <div className={styles.heroGlow}>
           <div className={styles.heroGlowLeft} />

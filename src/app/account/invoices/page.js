@@ -1,6 +1,8 @@
 // src/app/account/invoices/page.js
 import { headers } from "next/headers";
 
+import AccountSubnav from "../(protected)/_components/AccountSubnav";
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -200,6 +202,8 @@ export default async function InvoicesPage() {
 
   return (
     <main className={styles.pageWrap}>
+      <AccountSubnav active="/account/invoices" />
+      
       <section className={styles.heroCard}>
         <div className={styles.heroGlow}>
           <div className={styles.heroGlowLeft} />
