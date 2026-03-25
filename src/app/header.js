@@ -91,21 +91,13 @@ export default function Header() {
             href={homeHref}
             className={`d-flex align-items-center gap-3 text-decoration-none ${styles.brandLink}`}
           >
-            <div className={styles.logoWrap}>
-              <img
-                src={logo}
-                alt={storeNameForTitle}
-                className={styles.logoImg}
-              />
-            </div>
-
-            <div className={`d-none d-sm-block ${styles.brandTextWrap}`}>
+            <div className={`${styles.brandTextWrap}`}>
               <div className={styles.brandTitle}>
                 Church Suits Business
               </div>
 
-              <div className={styles.brandSubtitle}>
-                Affiliate Fashion Program
+              <div className={`d-none d-sm-block ${styles.brandSubtitle}`}>
+                Dropshipping Website You've Dreamed Of!
               </div>
             </div>
           </Link>

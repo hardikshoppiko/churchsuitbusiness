@@ -33,7 +33,7 @@
 }
 
 .brandTitle {
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -42,8 +42,8 @@
 }
 
 .brandSubtitle {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 15px;
+  color: #4a4e56;
   margin-top: 2px;
 }
 
@@ -174,5 +174,12 @@
 @media (min-width: 640px) {
   .sheetContent {
     width: 360px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .brandTitle {
+    font-size: 15px;
+    font-weight: bold;
   }
 }
