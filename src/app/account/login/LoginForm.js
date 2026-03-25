@@ -134,8 +134,7 @@ export default function LoginForm() {
         description: "Redirecting to dashboard...",
       });
 
-      window.location.href = redirect;
-      return;
+      router.push(redirect);
     } catch {
       const msg = "Login failed. Please try again.";
       setServerErr(msg);

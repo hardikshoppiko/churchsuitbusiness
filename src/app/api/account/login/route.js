@@ -1,36 +1,22 @@
-import { NextResponse } from "next/server";
-
+// src/app/api/account/login/route.js
 import { db } from "@/lib/db";
-import {
-  signSession,
-  getSessionCookieName,
-  getSessionCookieOptions,
-} from "@/lib/auth";
-import {
-  ocVerifyPassword,
-  isTenDigitPhone,
-  normalizeLogin,
-} from "@/lib/db-utils";
+import { createSession } from "@/lib/auth";
+import { ocVerifyPassword, isTenDigitPhone, normalizeLogin } from "@/lib/db-utils";
 
 export async function POST(req) {
   try {
     const body = await req.json().catch(() => ({}));
 
-    const username = normalizeLogin(body.username);
+    // console.log(body);
+
+    const username = normalizeLogin(body.username); // email OR phone
     const password = String(body.password || "");
 
     if (!username) {
-      return NextResponse.json(
-        { success: false, message: "Email or phone is required" },
-        { status: 400 }
-      );
+      return Response.json({ success: false, message: "Email or phone is required" }, { status: 400 });
     }
-
     if (!password) {
-      return NextResponse.json(
-        { success: false, message: "Password is required" },
-        { status: 400 }
-      );
+      return Response.json({ success: false, message: "Password is required" }, { status: 400 });
     }
 
     const isPhone = isTenDigitPhone(username);
@@ -43,20 +29,13 @@ export async function POST(req) {
     );
 
     const user = rows?.[0];
-
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Invalid Email/Mobile or password" },
-        { status: 401 }
-      );
+      return Response.json({ success: false, message: "Invalid Email/Mobile or password" }, { status: 401 });
     }
 
     if (Number(user.status) !== 1) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Your account is inactive. Please contact support.",
-        },
+      return Response.json(
+        { success: false, message: "Your account is inactive. Please contact support." },
         { status: 403 }
       );
     }
@@ -64,21 +43,18 @@ export async function POST(req) {
     const ok = ocVerifyPassword(password, user.salt, user.password);
 
     if (!ok) {
-      return NextResponse.json(
-        { success: false, message: "Invalid login or password" },
-        { status: 401 }
-      );
+      return Response.json({ success: false, message: "Invalid login or password" }, { status: 401 });
     }
 
-    const [affiliateRows] = await db.query(
-      "SELECT * FROM affiliate WHERE affiliate_id=? LIMIT 1",
-      [user.affiliate_id]
-    );
+    const [affiliateRows] = await db.query("SELECT * FROM affiliate WHERE affiliate_id=? LIMIT 1", [user.affiliate_id]);
 
     const affiliateData = affiliateRows?.[0];
+
+    // console.log(`Affiliate Data: ${JSON.stringify(affiliateData)}`);
+
     const affiliateUserName = user.username || user.email || "";
 
-    const sessionPayload = {
+    await createSession({
       affiliate_user_id: Number(user.affiliate_user_id),
       affiliate_id: Number(user.affiliate_id),
       username: String(affiliateUserName || ""),
@@ -90,11 +66,9 @@ export async function POST(req) {
       website: String(affiliateData?.website || ""),
       start_date: String(affiliateData?.start_date || ""),
       end_date: String(affiliateData?.end_date || ""),
-    };
+    });
 
-    const token = await signSession(sessionPayload);
-
-    const response = NextResponse.json({
+    return Response.json({
       success: true,
       loggedIn: true,
       message: "Logged in",
@@ -105,31 +79,16 @@ export async function POST(req) {
         lastname: user.lastname,
         email: user.email,
         telephone: user.telephone,
-        store_name: affiliateData?.store_name || "",
-        website: affiliateData?.website || "",
-        start_date: affiliateData?.start_date || "",
-        end_date: affiliateData?.end_date || "",
+        store_name: user.store_name,
+        website: user.website,
+        start_date: user.start_date,
+        end_date: user.end_date,
       },
     });
-
-    response.cookies.set(
-      getSessionCookieName(),
-      token,
-      getSessionCookieOptions()
-    );
-
-    return response;
   } catch (e) {
     console.error("Login failed:", e);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Login failed",
-        error:
-          process.env.NODE_ENV !== "production"
-            ? String(e?.message || e)
-            : undefined,
-      },
+    return Response.json(
+      { success: false, message: "Login failed", error: process.env.NODE_ENV !== "production" ? String(e?.message || e) : undefined },
       { status: 500 }
     );
   }
