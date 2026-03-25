@@ -135,6 +135,8 @@ export default function LoginForm() {
       });
 
       router.push(redirect);
+
+      router.refresh();
     } catch {
       const msg = "Login failed. Please try again.";
       setServerErr(msg);
