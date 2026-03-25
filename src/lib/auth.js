@@ -60,4 +60,5 @@ export async function getSession() {
   } catch {
     return null;
   }
+  
 }

@@ -30,17 +30,13 @@ const items = [
     label: "Support",
     icon: "life-ring",
   },
-  // {
-  //   href: "/account/logout",
-  //   label: "Logout",
-  //   icon: "sign-out",
-  //   danger: true,
-  // },
 ];
 
 export default function AccountSubnav({ active = "" }) {
   const pathname = usePathname();
+
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const activeHref = useMemo(() => {
     if (active) return active;
@@ -59,13 +55,38 @@ export default function AccountSubnav({ active = "" }) {
     setOpen(false);
   }
 
+  async function handleLogout() {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+
+    try {
+      const res = await fetch("/account/logout", {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.message || "Logout failed");
+      }
+
+      window.location.href = "/account/login";
+    } catch (e) {
+      console.error("Logout failed:", e);
+      setLoggingOut(false);
+      alert("Logout failed. Please try again.");
+    }
+  }
+
   return (
     <div className={styles.wrap}>
       {/* Desktop / Tablet */}
       <div className={cn(styles.desktopNav, "hidden md:flex")}>
         {items.map((item) => {
           const isActive = activeHref === item.href;
-          const isDanger = !!item.danger;
 
           return (
             <Link
@@ -73,21 +94,31 @@ export default function AccountSubnav({ active = "" }) {
               href={item.href}
               className={cn(
                 styles.desktopLink,
-                isActive && styles.desktopLinkActive,
-                isDanger && !isActive && styles.desktopLinkDanger
+                isActive && styles.desktopLinkActive
               )}
             >
               <i
-                className={cn(
-                  `fa fa-${item.icon}`,
-                  styles.desktopLinkIcon
-                )}
+                className={cn(`fa fa-${item.icon}`, styles.desktopLinkIcon)}
                 aria-hidden="true"
               />
               <span>{item.label}</span>
             </Link>
           );
         })}
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className={styles.logoutButton}
+        >
+          <i
+            className={cn("fa fa-sign-out", styles.desktopLinkIcon)}
+            aria-hidden="true"
+          />
+          <span>{loggingOut ? "Logging out..." : "Logout"}</span>
+        </Button>
       </div>
 
       {/* Mobile */}
@@ -95,10 +126,7 @@ export default function AccountSubnav({ active = "" }) {
         <div className={styles.mobileBar}>
           <div className={styles.mobileCurrent}>
             <i
-              className={cn(
-                `fa fa-${activeItem.icon}`,
-                styles.mobileCurrentIcon
-              )}
+              className={cn(`fa fa-${activeItem.icon}`, styles.mobileCurrentIcon)}
               aria-hidden="true"
             />
             <span>{activeItem.label}</span>
@@ -128,7 +156,6 @@ export default function AccountSubnav({ active = "" }) {
           <div className={styles.mobileMenu}>
             {items.map((item) => {
               const isActive = activeHref === item.href;
-              const isDanger = !!item.danger;
 
               return (
                 <Link
@@ -137,16 +164,12 @@ export default function AccountSubnav({ active = "" }) {
                   onClick={handleCloseMenu}
                   className={cn(
                     styles.mobileMenuLink,
-                    isActive && styles.mobileMenuLinkActive,
-                    isDanger && !isActive && styles.mobileMenuLinkDanger
+                    isActive && styles.mobileMenuLinkActive
                   )}
                 >
                   <span className={styles.mobileMenuLinkLeft}>
                     <i
-                      className={cn(
-                        `fa fa-${item.icon}`,
-                        styles.mobileMenuLinkIcon
-                      )}
+                      className={cn(`fa fa-${item.icon}`, styles.mobileMenuLinkIcon)}
                       aria-hidden="true"
                     />
                     <span>{item.label}</span>
@@ -159,6 +182,26 @@ export default function AccountSubnav({ active = "" }) {
                 </Link>
               );
             })}
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className={cn(styles.mobileMenuLink, styles.mobileLogoutButton)}
+            >
+              <span className={styles.mobileMenuLinkLeft}>
+                <i
+                  className={cn("fa fa-sign-out", styles.mobileMenuLinkIcon)}
+                  aria-hidden="true"
+                />
+                <span>{loggingOut ? "Logging out..." : "Logout"}</span>
+              </span>
+
+              <i
+                className={cn("fa fa-angle-right", styles.mobileMenuArrow)}
+                aria-hidden="true"
+              />
+            </button>
           </div>
         ) : null}
       </div>
