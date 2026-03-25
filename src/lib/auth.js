@@ -15,7 +15,11 @@ function getSecret() {
   return new TextEncoder().encode(s);
 }
 
-function getCookieOptions(maxAge = MAX_AGE_SEC) {
+export function getSessionCookieName() {
+  return COOKIE_NAME;
+}
+
+export function getSessionCookieOptions(maxAge = MAX_AGE_SEC) {
   const isProd = process.env.NODE_ENV === "production";
 
   return {
@@ -27,24 +31,21 @@ function getCookieOptions(maxAge = MAX_AGE_SEC) {
   };
 }
 
-export async function createSession(payload) {
-  const token = await new SignJWT(payload)
+export async function signSession(payload) {
+  return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE_SEC}s`)
     .sign(getSecret());
-
-  const cookieStore = await cookies();
-
-  cookieStore.set(COOKIE_NAME, token, getCookieOptions());
-
-  return token;
 }
 
 export async function clearSession() {
   const cookieStore = await cookies();
 
-  cookieStore.set(COOKIE_NAME, "", getCookieOptions(0));
+  cookieStore.set(COOKIE_NAME, "", {
+    ...getSessionCookieOptions(0),
+    maxAge: 0,
+  });
 }
 
 export async function getSession() {
