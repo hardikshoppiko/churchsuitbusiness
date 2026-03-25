@@ -21,6 +21,11 @@ const items = [
     icon: "file-invoice",
   },
   {
+    href: "/account/credit-cards",
+    label: "Payment Method",
+    icon: "credit-card",
+  },
+  {
     href: "/account/profile",
     label: "Profile",
     icon: "user",
