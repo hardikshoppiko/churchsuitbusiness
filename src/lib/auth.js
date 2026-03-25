@@ -24,9 +24,6 @@ function getCookieOptions(maxAge = MAX_AGE_SEC) {
     sameSite: "lax",
     path: "/",
     maxAge,
-    ...(isProd && process.env.LOGIN_COOKIE_DOMAIN
-      ? { domain: process.env.LOGIN_COOKIE_DOMAIN }
-      : {}),
   };
 }
 
