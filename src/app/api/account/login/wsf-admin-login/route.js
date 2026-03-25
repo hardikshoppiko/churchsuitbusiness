@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
-import { createSession } from "@/lib/auth";
+// import { createSession } from "@/lib/auth";
 
 function base64urlDecode(input) {
   const normalized = String(input || "")
@@ -122,20 +122,20 @@ export async function GET(req) {
 
     const affiliateUserName = user.username || user.email || "";
 
-    await createSession({
-      affiliate_user_id: Number(user.affiliate_user_id),
-      affiliate_id: Number(user.affiliate_id),
-      username: String(affiliateUserName || ""),
-      email: String(user.email || ""),
-      telephone: String(user.telephone || ""),
-      firstname: String(user.firstname || ""),
-      lastname: String(user.lastname || ""),
-      store_name: String(affiliateData?.store_name || ""),
-      website: String(affiliateData?.website || ""),
-      start_date: String(affiliateData?.start_date || ""),
-      end_date: String(affiliateData?.end_date || ""),
-      login_type: "admin_auto_login",
-    });
+    // await createSession({
+    //   affiliate_user_id: Number(user.affiliate_user_id),
+    //   affiliate_id: Number(user.affiliate_id),
+    //   username: String(affiliateUserName || ""),
+    //   email: String(user.email || ""),
+    //   telephone: String(user.telephone || ""),
+    //   firstname: String(user.firstname || ""),
+    //   lastname: String(user.lastname || ""),
+    //   store_name: String(affiliateData?.store_name || ""),
+    //   website: String(affiliateData?.website || ""),
+    //   start_date: String(affiliateData?.start_date || ""),
+    //   end_date: String(affiliateData?.end_date || ""),
+    //   login_type: "admin_auto_login",
+    // });
 
     return NextResponse.redirect(buildRedirect("/account"));
   } catch (e) {
