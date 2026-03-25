@@ -30,12 +30,12 @@ const items = [
     label: "Support",
     icon: "life-ring",
   },
-  {
-    href: "/account/logout",
-    label: "Logout",
-    icon: "sign-out",
-    danger: true,
-  },
+  // {
+  //   href: "/account/logout",
+  //   label: "Logout",
+  //   icon: "sign-out",
+  //   danger: true,
+  // },
 ];
 
 export default function AccountSubnav({ active = "" }) {
