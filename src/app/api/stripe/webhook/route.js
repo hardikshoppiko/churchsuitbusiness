@@ -196,7 +196,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
         fees: money(aff.fees),
         telephone: aff.telephone,
         start_date: formatDate(aff.start_date),
-        end_date: formateDate(aff.end_date)
+        end_date: formatDate(aff.end_date)
       });
     } else {
       await sendSubscriptionRenewedEmail({
