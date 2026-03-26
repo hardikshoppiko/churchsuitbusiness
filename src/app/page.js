@@ -43,22 +43,24 @@ const FEATURES = [
 const STEPS = [
   {
     no: "01",
-    title: "Register your account",
-    desc: "Complete a quick signup so we can begin preparing your affiliate website.",
+    title: "Register Your Account",
+    desc: "Complete a quick signup so we can begin preparing your dropshipping website.",
   },
   {
     no: "02",
-    title: "We build your store",
+    title: "We Build Your Store",
     desc: "Your site is designed, stocked with products, and prepared for customers.",
   },
   {
     no: "03",
-    title: "Promote and earn",
+    title: "Promote and Earn",
     desc: "Share your store, attract buyers, and earn while we handle fulfillment.",
   },
 ];
 
 export default function HomePage() {
+  const storePhone = process.env.NEXT_PUBLIC_STORE_PHONE;
+
   return (
     <main className={styles.page}>
       {/* HERO */}
@@ -70,11 +72,11 @@ export default function HomePage() {
             {/* LEFT */}
             <div className={styles.heroLeft}>
               <div className={styles.eyebrowBadge}>
-                Free Website • Fashion Affiliate Program • Dropshipping
+                Free Website • Over $3 Million Inventory • No Need Of Experience
               </div>
-              
+
               <h1 className={styles.heroTitle}>
-                Build A Premium Church Fashion Business
+                Start Making Money Today
               </h1>
 
               <div className={styles.heroMiniGrid}>
@@ -100,7 +102,7 @@ export default function HomePage() {
               </div>
 
               <p className={styles.heroText}>
-                Launch your own affiliate fashion website with elegant products,
+                Launch your own church fashion dropshipping website with elegant products,
                 a polished online store, and automated fulfillment designed to
                 help you start selling faster.
               </p>
@@ -109,14 +111,18 @@ export default function HomePage() {
                 <Link href="/register" className={`${styles.primaryBtn} text-decoration-none`}>
                   Start Your Online Business Now
                 </Link>
+
+                {/* <Link href="/register" className={`${styles.secondaryBtn} text-decoration-none`}>
+                  Create My Dropshipping Store
+                </Link> */}
               </div>
 
               <div className={styles.heroMeta}>
-                <span>No inventory cost</span>
+                <span>No Inventory Cost</span>
                 <span className="hidden sm:inline">•</span>
-                <span>Free website setup</span>
+                <span>Free Website Setup</span>
                 <span className="hidden sm:inline">•</span>
-                <span>Cancel anytime</span>
+                <span>Cancel Anytime</span>
               </div>
             </div>
 
@@ -152,22 +158,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PAYMENT + SHIPPING STRIP */}
-      <section className={styles.trustSection}>
-        <div className="container py-8">
-          <p className={styles.trustText}>
-            Secure payments and trusted shipping support
-          </p>
+      {/* HOW IT WORKS */}
+      <section className={styles.softSection}>
+        <div className="container py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className={styles.sectionEyebrow}>Simple Process</div>
+            <h2 className={styles.sectionTitleCentered}>
+              Three easy steps to your own affiliate fashion store
+            </h2>
+            <p className={styles.sectionTextCentered}>
+              A clean path from registration to promotion, without the usual startup complications.
+            </p>
+          </div>
 
-          <div className={styles.trustLogos}>
-            <img src="/assets/images/brands/stripe.png" alt="Stripe" className={styles.brandLogo} />
-            <img src="/assets/images/brands/paypal.png" alt="PayPal" className={styles.brandLogo} />
-            <img src="/assets/images/brands/ups.png" alt="UPS" className={styles.brandLogo} />
-            <img src="/assets/images/brands/fedex.png" alt="FedEx" className={styles.brandLogo} />
-            <img src="/assets/images/brands/usps.png" alt="USPS" className={styles.brandLogo} />
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {STEPS.map((step) => (
+              <div key={step.no} className={styles.stepCard}>
+                <div className={styles.stepNumber}>{step.no}</div>
+                <div className={styles.stepTitle}>{step.title}</div>
+                <div className={styles.stepDesc}>{step.desc}</div>
+              </div>
+            ))}
           </div>
         </div>
-      </section>
+      </section>      
 
       {/* LIFESTYLE SECTION */}
       <section className="container py-16 sm:py-20">
@@ -178,7 +192,7 @@ export default function HomePage() {
               Start a boutique-style online business with an elegant presentation
             </h2>
             <p className={styles.sectionText}>
-              This affiliate program is built for people who want more than a basic website.
+              This dropshipping program is built for people who want more than a basic website.
               It gives you a polished store, premium fashion products, and a system designed
               to help you sell with confidence.
             </p>
@@ -225,27 +239,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className={styles.softSection}>
-        <div className="container py-16 sm:py-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className={styles.sectionEyebrow}>Simple Process</div>
-            <h2 className={styles.sectionTitleCentered}>
-              Three easy steps to your own affiliate fashion store
-            </h2>
-            <p className={styles.sectionTextCentered}>
-              A clean path from registration to promotion, without the usual startup complications.
-            </p>
-          </div>
+      {/* PAYMENT + SHIPPING STRIP */}
+      <section className={styles.trustSection}>
+        <div className="container py-8">
+          <p className={styles.trustText}>
+            Secure Payments and Trusted Shipping Carriers
+          </p>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {STEPS.map((step) => (
-              <div key={step.no} className={styles.stepCard}>
-                <div className={styles.stepNumber}>{step.no}</div>
-                <div className={styles.stepTitle}>{step.title}</div>
-                <div className={styles.stepDesc}>{step.desc}</div>
-              </div>
-            ))}
+          <div className={styles.trustLogos}>
+            <img src="/assets/images/brands/stripe.png" alt="Stripe" className={styles.brandLogo} />
+            <img src="/assets/images/brands/paypal.png" alt="PayPal" className={styles.brandLogo} />
+            <img src="/assets/images/brands/ups.png" alt="UPS" className={styles.brandLogo} />
+            <img src="/assets/images/brands/usps.png" alt="USPS" className={styles.brandLogo} />
           </div>
         </div>
       </section>
@@ -256,7 +261,7 @@ export default function HomePage() {
           <div className="lg:col-span-5">
             <div className={styles.sectionEyebrow}>Watch How It Works</div>
             <h2 className={styles.sectionTitle}>
-              See how your affiliate fashion website comes together
+              See how your dropshipping fashion website comes together
             </h2>
             <p className={styles.sectionText}>
               From store setup to order fulfillment, our system is built to make online selling easier and more elegant.
@@ -278,7 +283,7 @@ export default function HomePage() {
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   style={{ border: 0 }}
-                  title="Affiliate Program Video"
+                  title="Dropshipping Program Video"
                 />
               </div>
             </div>
@@ -292,7 +297,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-3xl text-center">
             <div className={styles.sectionEyebrow}>Top Benefits</div>
             <h2 className={styles.sectionTitleCentered}>
-              Everything you need to run a premium affiliate store
+              Everything you need to run a premium dropshipping store
             </h2>
             <p className={styles.sectionTextCentered}>
               The tools, support, and systems that make this model simple and scalable.
@@ -384,14 +389,14 @@ export default function HomePage() {
         <div className="container py-10">
           <div className={styles.finalCard}>
             <div>
-              <div className={styles.finalTitle}>Ready to launch your affiliate fashion store?</div>
+              <div className={styles.finalTitle}>Ready to start your dropshipping store?</div>
               <div className={styles.finalText}>
                 Create your free website and start building your business today.
               </div>
             </div>
 
-            <Link href="/register" className={`${styles.primaryBtn} text-decoration-none`}>
-              Get Started Now →
+            <Link href={`tel:+1${storePhone.replace(/\D/g, "")}`} className={`${styles.primaryBtn} text-decoration-none`}>
+              Call Now <i className="fa fa-phone ml-2"></i>
             </Link>
           </div>
         </div>
