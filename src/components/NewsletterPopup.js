@@ -213,42 +213,51 @@ export default function NewsletterPopup() {
 
               <div className="pr-8">
                 <div className="inline-flex items-center rounded-full border border-[#ead7fb] bg-[#f5eaff] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8b5cc7]">
-                  Affiliate Program
+                  Dropshipping Program
                 </div>
 
                 <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-[28px]">
-                  Start Your Affiliate Store
+                  Start Your Dropshipping Store
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Promote premium church fashion online while we handle
-                  inventory, packing and shipping.
+                  From store setup to order fulfillment, our system is built to make online selling easier and more elegant.
                 </p>
 
-                <div className="mt-4 grid gap-2 text-sm text-slate-700">
+                <div className="mt-2 grid gap-2 text-sm text-slate-700">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-[#7d48c8]" />
-                    Free store setup
+                    Free Store Setup
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-[#7d48c8]" />
-                    Earn commissions per order
+                    Premium Product Access
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-[#7d48c8]" />
-                    Marketing tools included
+                    Automated Fulfillment
                   </div>
-                </div>
 
-                <div className="mt-4 text-xs text-slate-500">
-                  Enter your email and mobile number to receive onboarding
-                  details.
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#7d48c8]" />
+                    No Experience Needed
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#7d48c8]" />
+                    Elegant Store Presentation
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#7d48c8]" />
+                    Built For Real Profit
+                  </div>
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-3">
+              <form onSubmit={handleSubmit(onSubmit)} className="mt-3 space-y-3">
                 <div className="space-y-1">
                   <Label className="text-sm font-semibold text-slate-800">
                     Email Address
@@ -314,7 +323,7 @@ export default function NewsletterPopup() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <Button
+                  {/* <Button
                     type="button"
                     variant="outline"
                     onClick={() => closePopup("close")}
@@ -322,25 +331,19 @@ export default function NewsletterPopup() {
                     className="h-10 rounded-full border-[#e7d5fb] px-5 text-[#7d48c8]"
                   >
                     Close
-                  </Button>
+                  </Button> */}
 
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="h-10 rounded-full border-0 px-5 text-white"
+                    className="h-11 w-full rounded-full border-0 px-5 text-sm font-semibold text-white shadow-lg"
                     style={{
-                      background:
-                        "linear-gradient(135deg, #9d6ce0 0%, #7d48c8 100%)",
+                      background: "linear-gradient(135deg, #9d6ce0 0%, #7d48c8 100%)",
                     }}
                   >
                     {loading ? "Joining..." : "Join Now"}
                   </Button>
                 </div>
-
-                <p className="text-xs text-slate-500">
-                  Your information stays secure with us — we never share it with
-                  third parties.
-                </p>
               </form>
             </div>
           </div>

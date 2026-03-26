@@ -75,7 +75,7 @@ export default function Footer() {
         </div>
 
         <div className={styles.bottomBar}>
-          <div>© {year} ${storeName}. All rights reserved.</div>
+          <div>© {year} {storeName}. All rights reserved.</div>
 
           <div className={styles.bottomLinks}>
             <Link href="/about-us" className={styles.footerLink}>About Us</Link>

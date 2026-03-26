@@ -63,98 +63,94 @@ export default function HomePage() {
     <main className={styles.page}>
       {/* HERO */}
       <section className={styles.heroSection}>
-  <div className={styles.heroBgGlow} />
+        <div className={styles.heroBgGlow} />
 
-  <div className={`container ${styles.heroContainer}`}>
-    <div className={styles.heroGrid}>
-      {/* LEFT */}
-      <div className={styles.heroLeft}>
-        <div className={styles.eyebrowBadge}>
-          Free Website • Fashion Affiliate Program • Dropshipping
-        </div>
+        <div className={`container ${styles.heroContainer}`}>
+          <div className={styles.heroGrid}>
+            {/* LEFT */}
+            <div className={styles.heroLeft}>
+              <div className={styles.eyebrowBadge}>
+                Free Website • Fashion Affiliate Program • Dropshipping
+              </div>
+              
+              <h1 className={styles.heroTitle}>
+                Build A Premium Church Fashion Business
+              </h1>
 
-        <h1 className={styles.heroTitle}>
-          Build A Premium Church Fashion Business Without Inventory
-        </h1>
+              <div className={styles.heroMiniGrid}>
+                {[
+                  {
+                    title: "Zero Risk, No Investment",
+                    desc: "",
+                  },
+                  {
+                    title: "Make Money Instantly",
+                    desc: "",
+                  },
+                  {
+                    title: "No Experience Needed",
+                    desc: "",
+                  },
+                ].map((item) => (
+                  <div key={item.title} className={styles.miniCard}>
+                    <div className={styles.miniCardTitle}>{item.title}</div>
+                    <div className={styles.miniCardDesc}>{item.desc}</div>
+                  </div>
+                ))}
+              </div>
 
-        <p className={styles.heroText}>
-          Launch your own affiliate fashion website with elegant products,
-          a polished online store, and automated fulfillment designed to
-          help you start selling faster.
-        </p>
+              <p className={styles.heroText}>
+                Launch your own affiliate fashion website with elegant products,
+                a polished online store, and automated fulfillment designed to
+                help you start selling faster.
+              </p>
 
-        <div className={styles.heroButtonRow}>
-          <Link href="/register" className={`${styles.primaryBtn} text-decoration-none`}>
-            Start Free Registration
-          </Link>
+              <div className={styles.heroButtonRow}>
+                <Link href="/register" className={`${styles.primaryBtn} text-decoration-none`}>
+                  Start Your Online Business Now
+                </Link>
+              </div>
 
-          <Link href="/register" className={`${styles.secondaryBtn} text-decoration-none`}>
-            Create My Affiliate Store
-          </Link>
-        </div>
-
-        <div className={styles.heroMeta}>
-          <span>No inventory cost</span>
-          <span className="hidden sm:inline">•</span>
-          <span>Free website setup</span>
-          <span className="hidden sm:inline">•</span>
-          <span>Cancel anytime</span>
-        </div>
-
-        <div className={styles.heroMiniGrid}>
-          {[
-            {
-              title: "Fast Setup",
-              desc: "Your store is built for you.",
-            },
-            {
-              title: "Premium Fashion",
-              desc: "Sell elegant, in-demand styles.",
-            },
-            {
-              title: "We Fulfill Orders",
-              desc: "You focus on promotion.",
-            },
-          ].map((item) => (
-            <div key={item.title} className={styles.miniCard}>
-              <div className={styles.miniCardTitle}>{item.title}</div>
-              <div className={styles.miniCardDesc}>{item.desc}</div>
+              <div className={styles.heroMeta}>
+                <span>No inventory cost</span>
+                <span className="hidden sm:inline">•</span>
+                <span>Free website setup</span>
+                <span className="hidden sm:inline">•</span>
+                <span>Cancel anytime</span>
+              </div>
             </div>
-          ))}
+
+            {/* RIGHT */}
+            <div className={styles.heroRight}>
+              <div className={styles.heroImageGrid}>
+                <div className={styles.imageCardLarge}>
+                  <img
+                    src="/assets/images/home/lifestyle-woman.jpg"
+                    alt="Fashion model collage"
+                    className={styles.imageLarge}
+                  />
+                </div>
+
+                <div className={styles.imageCardSmall}>
+                  <img
+                    src="/assets/images/home/boutique-lifestyle-new.jpg"
+                    alt="Elegant woman in church fashion"
+                    className={styles.imageSmall}
+                  />
+                </div>
+
+                <div className={styles.imageCardSmall}>
+                  <img
+                    src="/assets/images/home/product-collage.jpg"
+                    alt="Fashion product collage"
+                    className={styles.imageSmall}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* RIGHT */}
-      <div className={styles.heroRight}>
-        <div className={styles.heroImageGrid}>
-          <div className={styles.imageCardLarge}>
-            <img
-              src="/assets/images/home/lifestyle-woman.jpg"
-              alt="Fashion model collage"
-              className={styles.imageLarge}
-            />
-          </div>
-
-          <div className={styles.imageCardSmall}>
-            <img
-              src="/assets/images/home/boutique-lifestyle-new.jpg"
-              alt="Elegant woman in church fashion"
-              className={styles.imageSmall}
-            />
-          </div>
-
-          <div className={styles.imageCardSmall}>
-            <img
-              src="/assets/images/home/product-collage.jpg"
-              alt="Fashion product collage"
-              className={styles.imageSmall}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* PAYMENT + SHIPPING STRIP */}
       <section className={styles.trustSection}>
