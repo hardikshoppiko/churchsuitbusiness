@@ -110,7 +110,7 @@ async function getPaymentStage(affiliateId) {
   return ((total === 0) ? "first" : "renewal");
 }
 
-async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId }) {
+async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId, eventType }) {
   const affId = Number(affiliate_id);
 
   if (!affId) {
@@ -168,6 +168,8 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
     INSERT INTO affiliate_payment
     SET
       affiliate_id=${affId},
+      event_type='${dbEscape(String(eventType))}',
+      recurring_billing_id='${dbEscape(String(subscriptionId))}',
       payment_charge_id='${dbEscape(String(payment_charge_id))}',
       invoice_number='${dbEscape(String(invoice_number))}',
       description='${dbEscape(String(descriptionSerialized))}',
@@ -307,6 +309,7 @@ export async function POST(req) {
         invoice,
         subscriptionId,
         customerId,
+        eventType: event.type
       });
 
       return jsonOK({ received: true, event: event.type, affiliate_id, result });
