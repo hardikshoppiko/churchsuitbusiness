@@ -214,7 +214,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
   return { affId, invoice_number, payment_charge_id, amount, paymentStage };
 }
 
-async function markFailedAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId }) {
+async function markFailedAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId, eventType }) {
   const affId = Number(affiliate_id);
 
   if (!affId) {
@@ -236,7 +236,7 @@ async function markFailedAndInsertPayment({ affiliate_id, invoice, subscriptionI
   await db.query(`UPDATE affiliate SET affiliate_status_id=16, date_modified=NOW() WHERE affiliate_id=${affId}`);
 
   // Insert failed payment row (only once)
-  await db.query(`INSERT INTO affiliate_payment SET affiliate_id=${affId}, payment_charge_id='', invoice_number='', description='Payment Failed!', amount='', start_date='0000-00-00 00:00:00', end_date='0000-00-00 00:00:00', payment_status=${payment_status}, date_added=NOW()`);
+  await db.query(`INSERT INTO affiliate_payment SET affiliate_id=${affId}, event_type='${dbEscape(String(eventType))}',  recurring_billing_id='${dbEscape(String(subscriptionId))}', payment_charge_id='', invoice_number='', description='Payment Failed!', amount='', start_date='0000-00-00 00:00:00', end_date='0000-00-00 00:00:00', payment_status=${payment_status}, date_added=NOW()`);
 
   // Send email
   const [rows] = await db.query(`SELECT store_name, email, firstname, lastname FROM affiliate WHERE affiliate_id=${affId} LIMIT 1`);
@@ -335,13 +335,14 @@ export async function POST(req) {
         invoice,
         subscriptionId,
         customerId,
+        eventType: event.type
       });
 
       return jsonOK({ received: true, event: event.type, affiliate_id, result });
     }
 
     // Cancel Subscription
-    if(event.type === "customer.subscription.deleted") {
+    if (event.type === "customer.subscription.deleted") {
       const invoice = event.data.object;
       
       if (!invoice.id) {
