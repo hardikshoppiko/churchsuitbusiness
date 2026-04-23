@@ -511,6 +511,7 @@ Collection:
 
 // Validation function to ensure consistent structure
 async function validateAndStructureData(data) {
+  // console.log('Raw Data:', data);
   const structuredData = {
     company: {
       name: data.company?.name || null,
@@ -557,6 +558,8 @@ async function validateAndStructureData(data) {
       item_code: item.item_code || null,
       quantity: typeof item.quantity === 'number' ? item.quantity : parseFloat(item.quantity) || 0,
       description: item.description || null,
+      color: item.color || null,
+      size: item.size || null,
       price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
       amount: typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0
     })) : [],
@@ -595,7 +598,7 @@ async function handleReadImageFileText(body) {
       );
     }
 
-    console.log('Received image URL:', imageUrl);
+    console.log('console Received image URL:', imageUrl);
 
     // Validate URL format
     try {
@@ -683,18 +686,39 @@ async function handleReadImageFileText(body) {
             },
             {
               type: "text",
-              text: `Please analyze this invoice image and extract all the data into a structured JavaScript object format. 
+              text: `Please analyze this invoice image and extract all the data into a structured JavaScript object format.
 
-              IMPORTANT: Be very careful and consistent when extracting address information. Always follow the exact structure provided below.
+              IMPORTANT: Be very careful and consistent when extracting address information and line items. Always follow the exact structure provided below.
 
               Extract the following information:
               1. Company/Vendor details (name, address, contact info)
               2. Invoice details (number, date, terms, PO number if any)
               3. Customer information with consistent address structure
-              4. All line items with item codes, quantities, descriptions, prices, and amounts
+              4. All line items — follow the item extraction rules below carefully
               5. Shipping information (method, tracking, dates)
               6. Total amounts and any taxes
               7. Any additional notes or special instructions
+
+              --- ITEM EXTRACTION RULES ---
+
+              RULE 1 — Color column:
+                - Look at the invoice table headers carefully
+                - If a dedicated "Color" column exists, read the color value from that column for each line item
+                - Put that value in "color_name" exactly as written (e.g. "red", "emerald green", "navy", "burgundy", "tan")
+                - If no Color column exists in the table, set color_name to null for all items
+
+              RULE 2 — Size column:
+                - Look at the invoice table headers carefully
+                - If a dedicated "Size" column exists, read the size value from that column for each line item
+                - Put that value in "size" exactly as written (e.g. "48R", "46R", "42R", "38R", "44L")
+                - If no Size column exists in the table, set size to null for all items
+
+              RULE 3 — Item Code:
+                - Use the Item Code column value exactly as it appears on the invoice (do not modify or parse it)
+
+              RULE 4 — If a row has no value in Color or Size column (blank cell), set that field to null for that row
+
+              --- END ITEM RULES ---
 
               Please return ONLY a valid JSON object with this EXACT structure. Make sure all numeric values are numbers, not strings:
 
@@ -722,7 +746,7 @@ async function handleReadImageFileText(body) {
                     "contact_person": "Contact Person Name",
                     "address": "Street Address",
                     "city": "City",
-                    "state": "State", 
+                    "state": "State",
                     "country": "Country",
                     "zip_code": "ZIP Code",
                     "phone": "Phone Number if available",
@@ -734,7 +758,7 @@ async function handleReadImageFileText(body) {
                     "address": "Street Address",
                     "city": "City",
                     "state": "State",
-                    "country": "Country", 
+                    "country": "Country",
                     "zip_code": "ZIP Code",
                     "phone": "Phone Number if available",
                     "email": "Email if available"
@@ -742,9 +766,11 @@ async function handleReadImageFileText(body) {
                 },
                 "items": [
                   {
-                    "item_code": "Item Code",
+                    "item_code": "Item code exactly as printed on invoice",
                     "quantity": 0,
-                    "description": "Item Description",
+                    "description": "Full item description as written on invoice",
+                    "color": "Value from Color column if column exists, else null",
+                    "size": "Value from Size column if column exists, else null",
                     "price": 0.00,
                     "amount": 0.00
                   }
@@ -773,7 +799,8 @@ async function handleReadImageFileText(body) {
               5. Ensure all numbers are numeric values, not strings
               6. Return ONLY the JSON object, no additional text or explanation
               7. If country is not explicitly mentioned, infer from state/zip code format (US format = "US")
-              8. Be consistent with field names and structure every time`
+              8. Be consistent with field names and structure every time
+              9. Never try to guess or parse color/size from item codes — only read from dedicated columns`
             }
           ],
         },
@@ -835,6 +862,7 @@ async function handleReadImageFileText(body) {
       message: 'Invoice data extracted successfully'
     };
 
+    // console.log('Response Data Items:', responseData.data.items);
     console.log('Response Data:', responseData);
 
     return Response.json(responseData);
@@ -900,6 +928,8 @@ async function validatePDFFileAndStructureData(data) {
       item_code: item.item_code || null,
       quantity: typeof item.quantity === 'number' ? item.quantity : parseFloat(item.quantity) || 0,
       description: item.description || null,
+      color: item.color || null,
+      size: item.size || null,         
       price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
       amount: typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0
     })) : [],
@@ -1017,18 +1047,39 @@ async function handleReadPdfFileText(body) {
             },
             {
               type: "text",
-              text: `Please analyze this invoice PDF and extract all the data into a structured JavaScript object format. 
+              text: `Please analyze this invoice PDF and extract all the data into a structured JavaScript object format.
 
-              IMPORTANT: Be very careful and consistent when extracting address information. Always follow the exact structure provided below.
+              IMPORTANT: Be very careful and consistent when extracting address information and line items. Always follow the exact structure provided below.
 
               Extract the following information:
               1. Company/Vendor details (name, address, contact info)
               2. Invoice details (number, date, terms, PO number if any)
               3. Customer information with consistent address structure
-              4. All line items with item codes, quantities, descriptions, prices, and amounts
+              4. All line items — follow the item extraction rules below carefully
               5. Shipping information (method, tracking, dates)
               6. Total amounts and any taxes
               7. Any additional notes or special instructions
+
+              --- ITEM EXTRACTION RULES ---
+
+              RULE 1 — Color column:
+                - Look at the invoice table headers carefully
+                - If a dedicated "Color" column exists, read the color value from that column for each line item
+                - Put that value in "color" exactly as written (e.g. "red", "emerald green", "navy", "burgundy", "tan")
+                - If no Color column exists in the table, set color to null for all items
+
+              RULE 2 — Size column:
+                - Look at the invoice table headers carefully
+                - If a dedicated "Size" column exists, read the size value from that column for each line item
+                - Put that value in "size" exactly as written (e.g. "48R", "46R", "42R", "38R", "44L")
+                - If no Size column exists in the table, set size to null for all items
+
+              RULE 3 — Item Code:
+                - Use the Item Code column value exactly as it appears on the invoice (do not modify or parse it)
+
+              RULE 4 — If a row has no value in Color or Size column (blank cell), set that field to null for that row
+
+              --- END ITEM RULES ---
 
               Please return ONLY a valid JSON object with this EXACT structure. Make sure all numeric values are numbers, not strings:
 
@@ -1056,7 +1107,7 @@ async function handleReadPdfFileText(body) {
                     "contact_person": "Contact Person Name",
                     "address": "Street Address",
                     "city": "City",
-                    "state": "State", 
+                    "state": "State",
                     "country": "Country",
                     "zip_code": "ZIP Code",
                     "phone": "Phone Number if available",
@@ -1068,7 +1119,7 @@ async function handleReadPdfFileText(body) {
                     "address": "Street Address",
                     "city": "City",
                     "state": "State",
-                    "country": "Country", 
+                    "country": "Country",
                     "zip_code": "ZIP Code",
                     "phone": "Phone Number if available",
                     "email": "Email if available"
@@ -1076,9 +1127,11 @@ async function handleReadPdfFileText(body) {
                 },
                 "items": [
                   {
-                    "item_code": "Item Code",
+                    "item_code": "Item code exactly as printed on invoice",
                     "quantity": 0,
-                    "description": "Item Description",
+                    "description": "Full item description as written on invoice",
+                    "color": "Value from Color column if column exists, else null",
+                    "size": "Value from Size column if column exists, else null",
                     "price": 0.00,
                     "amount": 0.00
                   }
@@ -1107,7 +1160,8 @@ async function handleReadPdfFileText(body) {
               5. Ensure all numbers are numeric values, not strings
               6. Return ONLY the JSON object, no additional text or explanation
               7. If country is not explicitly mentioned, infer from state/zip code format (US format = "US")
-              8. Be consistent with field names and structure every time`
+              8. Be consistent with field names and structure every time
+              9. Never try to guess or parse color/size from item codes — only read from dedicated columns`
             }
           ],
         },
