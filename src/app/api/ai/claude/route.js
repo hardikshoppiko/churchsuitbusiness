@@ -704,8 +704,38 @@ async function handleReadImageFileText(body) {
               RULE 1 — Color column:
                 - Look at the invoice table headers carefully
                 - If a dedicated "Color" column exists, read the color value from that column for each line item
-                - Put that value in "color_name" exactly as written (e.g. "red", "emerald green", "navy", "burgundy", "tan")
-                - If no Color column exists in the table, set color_name to null for all items
+                - If the color value is an abbreviation or code (e.g. WHT, BLK, SIL, NAV, YEL, MUL), resolve it to the full color name
+                - Common abbreviations to resolve:
+                    WHT / WHHT = White
+                    BLK = Black
+                    SIL = Silver
+                    NAV = Navy
+                    GLD = Gold
+                    YEL = Yellow
+                    RED = Red
+                    BLU = Blue
+                    GRN = Green
+                    BRN = Brown
+                    GRY / GRA = Gray
+                    PUR / PRP = Purple
+                    PNK = Pink
+                    ORG = Orange
+                    TAN = Tan
+                    CHA / CHAR = Charcoal
+                    BUR / BURG = Burgundy
+                    MUL / MULT = Multicolor
+                    CRM = Cream
+                    IVR / IVY = Ivory
+                    CAM = Camel
+                    WNE / WIN = Wine
+                - For compound colors separated by / (e.g. NAV/GLD, CHPP, WGP, CHPB), resolve each part and join with /
+                    NAV/GLD = Navy/Gold
+                    CHPP = Champagne/Purple
+                    WGP = White/Gold/Purple
+                    CHPB = Champagne/Purple/Blue
+                - Put the resolved full color name in "color" in lowercase (e.g. "white", "black", "navy/gold")
+                - If the color cannot be resolved from the abbreviation, keep the original value as-is
+                - If no Color column exists in the table, set color to null for all items
 
               RULE 2 — Size column:
                 - Look at the invoice table headers carefully
@@ -1065,7 +1095,37 @@ async function handleReadPdfFileText(body) {
               RULE 1 — Color column:
                 - Look at the invoice table headers carefully
                 - If a dedicated "Color" column exists, read the color value from that column for each line item
-                - Put that value in "color" exactly as written (e.g. "red", "emerald green", "navy", "burgundy", "tan")
+                - If the color value is an abbreviation or code (e.g. WHT, BLK, SIL, NAV, YEL, MUL), resolve it to the full color name
+                - Common abbreviations to resolve:
+                    WHT / WHHT = White
+                    BLK = Black
+                    SIL = Silver
+                    NAV = Navy
+                    GLD = Gold
+                    YEL = Yellow
+                    RED = Red
+                    BLU = Blue
+                    GRN = Green
+                    BRN = Brown
+                    GRY / GRA = Gray
+                    PUR / PRP = Purple
+                    PNK = Pink
+                    ORG = Orange
+                    TAN = Tan
+                    CHA / CHAR = Charcoal
+                    BUR / BURG = Burgundy
+                    MUL / MULT = Multicolor
+                    CRM = Cream
+                    IVR / IVY = Ivory
+                    CAM = Camel
+                    WNE / WIN = Wine
+                - For compound colors separated by / (e.g. NAV/GLD, CHPP, WGP, CHPB), resolve each part and join with /
+                    NAV/GLD = Navy/Gold
+                    CHPP = Champagne/Purple
+                    WGP = White/Gold/Purple
+                    CHPB = Champagne/Purple/Blue
+                - Put the resolved full color name in "color" in lowercase (e.g. "white", "black", "navy/gold")
+                - If the color cannot be resolved from the abbreviation, keep the original value as-is
                 - If no Color column exists in the table, set color to null for all items
 
               RULE 2 — Size column:
