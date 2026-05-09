@@ -585,7 +585,7 @@ ${brandName} Team
   try {
     // await sendHtml(to_email, subject, html, text);
     // await sendHtml('weshipfashionstech@gmail.com', `Copy - ${subject}`, html, text, { bcc: bcc });
-    // await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
+    await sendHtml('hardik.shoppiko@gmail.com', `Copy - ${subject}`, html, text);
   } catch (e) {
     console.log("Email failed", e);
   }
