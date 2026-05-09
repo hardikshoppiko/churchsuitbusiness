@@ -38,8 +38,19 @@ async function getAffiliateIdFromInvoice(invoice) {
 
   let affiliate_id = sub?.metadata?.affiliate_id || sub?.metadata?.affiliateId || null;
 
+
+  // Get affiliate ID from subscription ID
   if(!affiliate_id && subscriptionId) {
     const affiliate_info = await getAffiliateFromSubscriptionId({ recurring_billing_id: subscriptionId });
+
+    if(affiliate_info && affiliate_info.affiliate_id !== undefined) {
+      affiliate_id = affiliate_info.affiliate_id;
+    }
+  }
+
+  // Get affiliate ID from customer ID
+  if(!affiliate_id && customerId) {
+    const affiliate_info = await getAffiliateFromCustomerId({ stripe_customer_id: customerId });
 
     if(affiliate_info && affiliate_info.affiliate_id !== undefined) {
       affiliate_id = affiliate_info.affiliate_id;
@@ -57,6 +68,18 @@ async function getAffiliateFromSubscriptionId(affiliate) {
   }
 
   const [rows] = await db.query(`SELECT * FROM affiliate WHERE recurring_billing_id='${recurringId}' AND is_delete=0 LIMIT 1`);
+
+  return rows?.[0] || null;
+}
+
+async function getAffiliateFromCustomerId(affiliate) {
+  const customerId = dbEscape(String(affiliate?.stripe_customer_id || ""));
+
+  if (!customerId) {
+    return null;
+  }
+
+  const [rows] = await db.query(`SELECT * FROM affiliate WHERE stripe_customer_id='${dbEscape(String(customerId))}' AND is_delete=0 LIMIT 1`);
 
   return rows?.[0] || null;
 }
