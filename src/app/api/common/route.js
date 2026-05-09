@@ -211,11 +211,11 @@ export async function GET() {
   //   telephone: `2018887493`
   // });
 
-  const result = await godaddyDisableAutoRenewIfEnabled("https://womenssundaysuites.com");
+  // const result = await godaddyDisableAutoRenewIfEnabled("https://womenssundaysuites.com");
 
-  console.log(result);
+  // console.log(result);
 
-  console.log('send demo email to customer!');
+  // console.log('send demo email to customer!');
 
   return NextResponse.json({
     success: true,

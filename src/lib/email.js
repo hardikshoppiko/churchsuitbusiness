@@ -455,6 +455,15 @@ export async function sendSubscriptionRenewedEmail({ to, name, affiliateId, stor
                           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:14px;">
                             <tr>
                               <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280; width:165px;">
+                                Affiliate ID
+                              </td>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700;">
+                                ${safeAffiliateId}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#6b7280; width:165px;">
                                 Store Name
                               </td>
                               <td style="padding:8px 0; font-size:14px; line-height:1.75; color:#111827; font-weight:700;">
