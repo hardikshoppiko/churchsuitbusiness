@@ -3,9 +3,17 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-import { db } from "@/lib/db";
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+import { db } from "@/lib/db";
+import { formatDate } from "@/lib/db-utils";
+
+function formatDateFromUnix(unixSeconds) {
+  const n = Number(unixSeconds || 0);
+  if (!n) return "";
+
+  return formatDate(new Date(n * 1000), "MM/DD/YYYY");
+}
 
 /**
  * Fetch all ACTIVE subscriptions from Stripe using pagination
@@ -41,9 +49,6 @@ async function getAllActiveSubscriptions() {
 
 /**
  * Fetch all active affiliates from DB
- * condition:
- * - status = 1
- * - is_delete = 0
  */
 async function getAllLiveAffiliates() {
   const [rows] = await db.query(`
@@ -73,19 +78,8 @@ export async function GET() {
       );
     }
 
-    /**
-     * STEP 1:
-     * Fetch all active Stripe subscriptions
-     */
     const subscriptions = await getAllActiveSubscriptions();
 
-    /**
-     * STEP 2:
-     * Make a lookup map by customer_id
-     *
-     * One customer may have one or more active subscriptions,
-     * so store them in array.
-     */
     const subscriptionsByCustomer = new Map();
 
     for (const sub of subscriptions) {
@@ -106,26 +100,14 @@ export async function GET() {
         status: String(sub.status || ""),
         current_period_start: sub.current_period_start || 0,
         current_period_end: sub.current_period_end || 0,
+        next_billing_date: formatDateFromUnix(sub.current_period_end || 0),
         cancel_at_period_end: !!sub.cancel_at_period_end,
         created: sub.created || 0,
       });
     }
 
-    /**
-     * STEP 3:
-     * Fetch affiliates from DB
-     */
     const affiliates = await getAllLiveAffiliates();
 
-    /**
-     * STEP 4:
-     * Compare affiliate.stripe_customer_id with Stripe customer_id
-     * and then compare affiliate.recurring_billing_id with
-     * active Stripe subscription ids for that same customer
-     *
-     * We return only mismatched rows:
-     * customer matches, but subscription id is different
-     */
     const mismatchAffiliates = [];
 
     for (const affiliate of affiliates) {
@@ -139,29 +121,14 @@ export async function GET() {
 
       const customerSubscriptions = subscriptionsByCustomer.get(stripeCustomerId) || [];
 
-      /**
-       * If no active subscription found in Stripe for this customer,
-       * skip for now because your requirement says:
-       * fetch affiliates whose subscription id is different
-       * than fetched Stripe subscription.
-       *
-       * If later you want, we can also return "no active subscription found".
-       */
       if (customerSubscriptions.length === 0) {
         continue;
       }
 
-      /**
-       * Check if affiliate recurring_billing_id matches ANY active Stripe sub id
-       * for this customer.
-       */
       const matchedSubscription = customerSubscriptions.find(
         (sub) => sub.subscription_id === recurringBillingId
       );
 
-      /**
-       * If no matching subscription id found, then this affiliate is mismatch
-       */
       if (!matchedSubscription) {
         mismatchAffiliates.push({
           affiliate_id: affiliateId,
@@ -176,6 +143,7 @@ export async function GET() {
             status: sub.status,
             current_period_start: sub.current_period_start,
             current_period_end: sub.current_period_end,
+            next_billing_date: sub.next_billing_date,
             cancel_at_period_end: sub.cancel_at_period_end,
             created: sub.created,
           })),
