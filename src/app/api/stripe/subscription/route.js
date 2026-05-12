@@ -116,6 +116,8 @@ export async function GET() {
         sub?.items?.data?.[0]?.current_period_end || 0
       );
 
+      const createdDate = Number(sub.created || 0);
+
       subscriptionsByCustomer.get(customerId).push({
         subscription_id: String(sub.id || ""),
         customer_id: customerId,
@@ -126,7 +128,7 @@ export async function GET() {
         period_end_date: formatDateFromUnix(itemCurrentPeriodEnd),
         next_billing_date: formatDateFromUnix(itemCurrentPeriodEnd),
         cancel_at_period_end: !!sub.cancel_at_period_end,
-        created: sub.created || 0,
+        created:  formatDate(createdDate)|| 0
       });
     }
 
