@@ -180,6 +180,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
     await db.query(`
       UPDATE affiliate
       SET
+        affiliate_status_id=100,
         end_date=DATE_ADD(NOW(), INTERVAL 30 DAY),
         date_modified=NOW()
       WHERE affiliate_id=${affId}
