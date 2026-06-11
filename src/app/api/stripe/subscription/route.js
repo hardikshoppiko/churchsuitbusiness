@@ -19,6 +19,41 @@ function formatDateFromUnix(unixSeconds) {
 }
 
 /**
+ * Convert any JS/MySQL date to YYYY-MM-DD
+ * This is used only for comparison.
+ */
+function normalizeDateOnly(value) {
+  if (!value) return "";
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Format DB date to MM/DD/YYYY for display.
+ */
+function formatDbDate(value) {
+  if (!value) return "";
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return formatDate(date, "MM/DD/YYYY");
+}
+
+/**
  * Fetch all ACTIVE subscriptions from Stripe using pagination
  */
 async function getAllActiveSubscriptions() {
@@ -67,6 +102,98 @@ async function getAllLiveAffiliates() {
   `);
 
   return Array.isArray(rows) ? rows : [];
+}
+
+/**
+ * NEW SEPARATE FUNCTION:
+ *
+ * Check active Stripe customer's next billing date
+ * against database affiliate.end_date.
+ *
+ * This function is separate from your existing recurring_billing_id
+ * mismatch logic, so future confusion is avoided.
+ */
+async function getBillingDateMismatchAffiliates(subscriptionsByCustomer) {
+  const [rows] = await db.query(`
+    SELECT
+      affiliate_id,
+      stripe_customer_id,
+      recurring_billing_id,
+      end_date,
+      status,
+      is_delete
+    FROM affiliate
+    WHERE status = 1
+      AND is_delete = 0
+      AND stripe_customer_id IS NOT NULL
+      AND stripe_customer_id != ''
+  `);
+
+  const affiliates = Array.isArray(rows) ? rows : [];
+  const billingDateMismatchAffiliates = [];
+
+  for (const affiliate of affiliates) {
+    const affiliateId = Number(affiliate.affiliate_id || 0);
+    const stripeCustomerId = String(affiliate.stripe_customer_id || "").trim();
+    const recurringBillingId = String(
+      affiliate.recurring_billing_id || ""
+    ).trim();
+
+    const customerSubscriptions =
+      subscriptionsByCustomer.get(stripeCustomerId) || [];
+
+    if (customerSubscriptions.length === 0) {
+      continue;
+    }
+
+    /**
+     * First prefer exact recurring_billing_id match.
+     * If recurring_billing_id is old/wrong, use first active subscription
+     * for checking Stripe next billing date.
+     */
+    const matchedSubscription =
+      customerSubscriptions.find(
+        (sub) => sub.subscription_id === recurringBillingId
+      ) || customerSubscriptions[0];
+
+    const dbEndDateCompare = normalizeDateOnly(affiliate.end_date);
+
+    const stripeNextBillingDateCompare = normalizeDateOnly(
+      matchedSubscription.current_period_end
+        ? new Date(Number(matchedSubscription.current_period_end) * 1000)
+        : ""
+    );
+
+    if (!dbEndDateCompare || !stripeNextBillingDateCompare) {
+      continue;
+    }
+
+    if (dbEndDateCompare !== stripeNextBillingDateCompare) {
+      billingDateMismatchAffiliates.push({
+        affiliate_id: affiliateId,
+        stripe_customer_id: stripeCustomerId,
+        recurring_billing_id: recurringBillingId,
+
+        db_end_date: formatDbDate(affiliate.end_date),
+        db_end_date_compare: dbEndDateCompare,
+
+        stripe_subscription_id: matchedSubscription.subscription_id,
+        stripe_next_billing_date: matchedSubscription.next_billing_date,
+        stripe_next_billing_date_compare: stripeNextBillingDateCompare,
+
+        stripe_period_start_date: matchedSubscription.period_start_date,
+        stripe_period_end_date: matchedSubscription.period_end_date,
+        stripe_status: matchedSubscription.status,
+
+        cancel_at_period_end: matchedSubscription.cancel_at_period_end,
+
+        status: Number(affiliate.status || 0),
+        is_delete: Number(affiliate.is_delete || 0),
+      });
+    }
+  }
+
+  return billingDateMismatchAffiliates;
 }
 
 export async function GET() {
@@ -128,7 +255,12 @@ export async function GET() {
         period_end_date: formatDateFromUnix(itemCurrentPeriodEnd),
         next_billing_date: formatDateFromUnix(itemCurrentPeriodEnd),
         cancel_at_period_end: !!sub.cancel_at_period_end,
-        created:  formatDate(createdDate)|| 0
+
+        /**
+         * Small fix:
+         * Stripe created is also Unix timestamp seconds.
+         */
+        created: formatDateFromUnix(createdDate),
       });
     }
 
@@ -140,6 +272,8 @@ export async function GET() {
 
     /**
      * STEP 4:
+     * Your current existing check:
+     *
      * Find affiliates where:
      * - stripe_customer_id matches an active Stripe customer
      * - recurring_billing_id does NOT match any active Stripe subscription id
@@ -149,7 +283,9 @@ export async function GET() {
     for (const affiliate of affiliates) {
       const affiliateId = Number(affiliate.affiliate_id || 0);
       const stripeCustomerId = String(affiliate.stripe_customer_id || "").trim();
-      const recurringBillingId = String(affiliate.recurring_billing_id || "").trim();
+      const recurringBillingId = String(
+        affiliate.recurring_billing_id || ""
+      ).trim();
 
       if (!stripeCustomerId) {
         continue;
@@ -190,15 +326,33 @@ export async function GET() {
       }
     }
 
+    /**
+     * STEP 5:
+     * New separate check:
+     *
+     * Check Stripe next billing date with database end_date.
+     */
+    const billingDateMismatchAffiliates =
+      await getBillingDateMismatchAffiliates(subscriptionsByCustomer);
+
     return NextResponse.json({
       ok: true,
       total_active_stripe_subscriptions: subscriptions.length,
       total_active_affiliates: affiliates.length,
+
       total_mismatch_affiliates: mismatchAffiliates.length,
       mismatch_affiliates: mismatchAffiliates,
+
+      total_billing_date_mismatch_affiliates:
+        billingDateMismatchAffiliates.length,
+
+      billing_date_mismatch_affiliates: billingDateMismatchAffiliates,
     });
   } catch (error) {
-    console.error("Failed to compare Stripe subscriptions with affiliates:", error);
+    console.error(
+      "Failed to compare Stripe subscriptions with affiliates:",
+      error
+    );
 
     return NextResponse.json(
       {
