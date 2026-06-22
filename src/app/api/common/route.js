@@ -1,11 +1,15 @@
+// IMPORTANT for SendGrid
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 
 import { money } from "@/lib/db-utils";
 
 import { sendSubscriptionActivatedEmail, sendSubscriptionRenewedEmail, sendSubscriptionUpdatedEmail, sendPaymentFailedEmail, sendSubscriptionCancelledEmail } from "@/lib/email";
 
-// IMPORTANT for SendGrid
-export const runtime = "nodejs";
+import { sendLeadEmail } from "@/lib/automation-email";
+
+const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
 async function godaddyDisableAutoRenewIfEnabled(domainRaw) {
   // Final response object
@@ -211,11 +215,27 @@ export async function GET() {
   //   telephone: `2018887493`
   // });
 
+  // Cron Lead Affiliate Email
+  await sendLeadEmail({
+    to: "hardik.shoppiko@gmail.com",
+    subject: "Sample Lead Automation Email",
+    html: "This is a dummy lead automation email for testing the premium cron email template.",
+    firstname: "Test",
+    lastname: "User",
+    email: "abc@test.com",
+    telephone: "9876543210",
+    source_url: "https://example.com/test-source",
+    register_url: `${APP_URL}/register`,
+    affiliate_id: "9999",
+    payment_url: `${APP_URL}/register/payment/9999`,
+  });
+
+
   // const result = await godaddyDisableAutoRenewIfEnabled("https://womenssundaysuites.com");
 
   // console.log(result);
 
-  // console.log('send demo email to customer!');
+  console.log('send demo email to customer!');
 
   return NextResponse.json({
     success: true,

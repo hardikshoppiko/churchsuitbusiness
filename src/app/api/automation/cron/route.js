@@ -1,7 +1,8 @@
-// /src/app/api/automation/cron/route.js
+// src/app/api/automation/cron/route.js
 export const runtime = "nodejs";
 
 import { db } from "@/lib/db";
+import { sendLeadEmail, sendPendingPaymentEmail } from "@/lib/automation-email";
 
 /**
  * CRON automation sender
@@ -14,14 +15,14 @@ import { db } from "@/lib/db";
  * - Prevent burst: send ONLY ONE message per affiliate per channel per cron run
  * - Insert send_log only after send success
  *
- * ✅ NEW:
+ * NEW:
  * - For cohort "lead": also process affiliate_newsletter as lead recipients
  * - Uses affiliate_automation_newsletter_send_log table
  */
 
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
 const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const DAYS_INTERVAL = 7; // for newsletter leads, look back X days
+const DAYS_INTERVAL = 7;
 
 // ==========================
 // Placeholder replace
@@ -39,18 +40,54 @@ function nowMs() {
 }
 
 // ==========================
-// SENDERS (Replace later with SendGrid/Twilio)
-// Must return truthy object on success, else null/false
+// SENDERS
 // ==========================
-async function sendEmail({ to, subject, html }) {
-  console.log(`html: ${html}`);
-  console.log("EMAIL SEND:", { to, subject });
-  return { provider: "stub", provider_message_id: `email_${Date.now()}` };
+async function sendEmail({ to, subject, html, vars = {} }) {
+  let result = null;
+
+  if (String(vars.cohort || "") === "lead") {
+    result = await sendLeadEmail({
+      to,
+      subject,
+      body: html || "",
+      firstname: vars.firstname || "",
+      lastname: vars.lastname || "",
+      email: vars.email || "",
+      telephone: vars.telephone || "",
+      source_url: vars.source_url || "",
+      register_url: vars.register_url || `${APP_URL}/register`,
+      payment_url: vars.payment_url || "",
+      affiliate_id: vars.affiliate_id || "",
+    });
+  } else if (String(vars.cohort || "") === "pending_payment") {
+    result = await sendPendingPaymentEmail({
+      to,
+      subject,
+      body: html || "",
+      firstname: vars.firstname || "",
+      lastname: vars.lastname || "",
+      email: vars.email || "",
+      telephone: vars.telephone || "",
+      affiliate_id: vars.affiliate_id || "",
+      payment_url: vars.payment_url || "",
+    });
+  } else {
+    result = null;
+  }
+
+  if (!result?.ok) {
+    return null;
+  }
+
+  return {
+    provider: "sendgrid",
+    provider_message_id: `email_${Date.now()}`,
+  };
 }
 
 async function sendSms({ to, text }) {
   console.log("SMS SEND:", { to, text });
-  return null; // keep null until SMS enabled
+  return null;
 }
 
 // ==========================
@@ -60,14 +97,14 @@ async function getAffiliateStatusIdByCode(statusCode) {
   const code = String(statusCode || "").trim();
   if (!code) return null;
 
-  const [rows] = await db.query(`SELECT affiliate_status_id FROM affiliate_status WHERE code=? AND status=1 LIMIT 1`, [code]);
+  const [rows] = await db.query(
+    `SELECT affiliate_status_id FROM affiliate_status WHERE code=? AND status=1 LIMIT 1`,
+    [code]
+  );
 
   return rows?.[0]?.affiliate_status_id ? Number(rows[0].affiliate_status_id) : null;
 }
 
-/**
- * Get last activity time for affiliates (bulk).
- */
 async function getLastActivityMap(affiliateIds = []) {
   const map = new Map();
   const ids = affiliateIds.map((id) => Number(id)).filter(Boolean);
@@ -89,9 +126,6 @@ async function getLastActivityMap(affiliateIds = []) {
   return map;
 }
 
-/**
- * Get last sent time per affiliate+channel (bulk) so we can apply cooldown
- */
 async function getLastSentAtMap(affiliateIds = []) {
   const map = new Map();
   const ids = affiliateIds.map((id) => Number(id)).filter(Boolean);
@@ -114,9 +148,6 @@ async function getLastSentAtMap(affiliateIds = []) {
   return map;
 }
 
-/**
- * ✅ NEW: Get last sent time per newsletter lead + channel (bulk) so we can apply cooldown
- */
 async function getNewsletterLastSentAtMap(newsletterIds = []) {
   const map = new Map();
   const ids = newsletterIds.map((id) => Number(id)).filter(Boolean);
@@ -139,21 +170,18 @@ async function getNewsletterLastSentAtMap(newsletterIds = []) {
   return map;
 }
 
-/**
- * Check if already sent exact rule for (affiliate_id, rule_id, channel)
- */
 async function alreadySent({ affiliate_id, rule_id, channel }) {
   const [rows] = await db.query(
-    `SELECT send_log_id FROM affiliate_automation_send_log WHERE affiliate_id=? AND rule_id=? AND channel=? LIMIT 1`,
+    `SELECT send_log_id
+     FROM affiliate_automation_send_log
+     WHERE affiliate_id=? AND rule_id=? AND channel=?
+     LIMIT 1`,
     [Number(affiliate_id), Number(rule_id), String(channel)]
   );
 
   return !!rows?.length;
 }
 
-/**
- * ✅ NEW: Check if already sent exact rule for (affiliate_newsletter_id, rule_id, channel)
- */
 async function alreadySentNewsletter({ affiliate_newsletter_id, rule_id, channel }) {
   const [rows] = await db.query(
     `SELECT send_log_id
@@ -166,9 +194,6 @@ async function alreadySentNewsletter({ affiliate_newsletter_id, rule_id, channel
   return !!rows?.length;
 }
 
-/**
- * Insert send log only after successful send
- */
 async function insertSendLog({
   affiliate_id,
   rule_id,
@@ -189,9 +214,6 @@ async function insertSendLog({
   );
 }
 
-/**
- * ✅ NEW: Insert newsletter send log only after successful send
- */
 async function insertNewsletterSendLog({
   affiliate_newsletter_id,
   rule_id,
@@ -212,12 +234,8 @@ async function insertNewsletterSendLog({
   );
 }
 
-/**
- * Pick ONLY ONE eligible rule per channel.
- * ✅ MUST follow sort_order first (email/sms send in sort_order sequence)
- */
 function pickOneRulePerChannel(eligibleRules = []) {
-  const best = new Map(); // channel -> rule
+  const best = new Map();
 
   const sorted = [...eligibleRules].sort((a, b) => {
     const sa = Number(a.sort_order || 0);
@@ -254,8 +272,10 @@ async function processCron(statusCode) {
     };
   }
 
-  // 1) load active rules for this cohort
-  const [rules] = await db.query(`SELECT * FROM affiliate_automation_rule WHERE status=1 AND cohort=? ORDER BY delay_minutes ASC, sort_order ASC`, [String(statusCode)]);
+  const [rules] = await db.query(
+    `SELECT * FROM affiliate_automation_rule WHERE status=1 AND cohort=? ORDER BY delay_minutes ASC, sort_order ASC`,
+    [String(statusCode)]
+  );
 
   if (!rules?.length) {
     return {
@@ -267,15 +287,18 @@ async function processCron(statusCode) {
     };
   }
 
-  // 2) load templates used by rules
-  const templateCodes = Array.from(new Set(rules.map((r) => String(r.template_code || "")).filter(Boolean)));
+  const templateCodes = Array.from(
+    new Set(rules.map((r) => String(r.template_code || "")).filter(Boolean))
+  );
 
   const templateByKey = new Map();
 
   if (templateCodes.length) {
     const codesSql = templateCodes.map((c) => `'${c.replaceAll("'", "''")}'`).join(",");
 
-    const [tpls] = await db.query(`SELECT * FROM affiliate_automation_template WHERE status=1 AND code IN (${codesSql})`);
+    const [tpls] = await db.query(
+      `SELECT * FROM affiliate_automation_template WHERE status=1 AND code IN (${codesSql})`
+    );
 
     for (const t of tpls || []) {
       templateByKey.set(`${t.code}:${t.channel}`, t);
@@ -283,9 +306,17 @@ async function processCron(statusCode) {
   }
 
   // ==========================
-  // A) Affiliate processing (your existing logic)
+  // A) Affiliate processing
   // ==========================
-  const [affiliates] = await db.query(`SELECT affiliate_id, firstname, lastname, email, telephone, date_added, affiliate_status_id, stop_automation, status, is_delete FROM affiliate WHERE affiliate_status_id=${Number(affiliate_status_id)} AND is_delete=0 AND date_added >= DATE_SUB(NOW(), INTERVAL ${Number(DAYS_INTERVAL)} DAY) ORDER BY affiliate_id DESC LIMIT 500`);
+  const [affiliates] = await db.query(
+    `SELECT affiliate_id, firstname, lastname, email, telephone, date_added, affiliate_status_id, stop_automation, status, is_delete
+     FROM affiliate
+     WHERE affiliate_status_id=${Number(affiliate_status_id)}
+       AND is_delete=0
+       AND date_added >= DATE_SUB(NOW(), INTERVAL ${Number(DAYS_INTERVAL)} DAY)
+     ORDER BY affiliate_id DESC
+     LIMIT 500`
+  );
 
   const totals = {
     affiliates: affiliates?.length || 0,
@@ -315,19 +346,15 @@ async function processCron(statusCode) {
     for (const aff of affiliates) {
       const affiliate_id = Number(aff.affiliate_id);
 
-      if (!affiliate_id) {
-        continue;
-      }
+      if (!affiliate_id) continue;
 
       const lastActivity = lastActivityMap.get(affiliate_id) || aff.date_added;
-
       const lastActivityMs = lastActivity ? new Date(lastActivity).getTime() : 0;
 
-      if (!lastActivityMs) {
-        continue;
-      }
+      if (!lastActivityMs) continue;
 
       const payment_url = `${APP_URL}/register/payment/${affiliate_id}`;
+      const register_url = `${APP_URL}/register`;
 
       const vars = {
         affiliate_id,
@@ -336,6 +363,7 @@ async function processCron(statusCode) {
         email: aff.email || "",
         telephone: aff.telephone || "",
         payment_url,
+        register_url,
         short_payment_url: payment_url,
       };
 
@@ -373,6 +401,7 @@ async function processCron(statusCode) {
           totals.skippedNoContact++;
           continue;
         }
+
         if (channel === "sms" && !String(aff.telephone || "").trim()) {
           totals.skippedNoContact++;
           continue;
@@ -413,7 +442,21 @@ async function processCron(statusCode) {
 
         try {
           if (channel === "email") {
-            providerResult = await sendEmail({ to: aff.email, subject, html: body });
+            providerResult = await sendEmail({
+              to: aff.email,
+              subject,
+              html: body,
+              vars: {
+                cohort: statusCode,
+                affiliate_id,
+                firstname: aff.firstname || "",
+                lastname: aff.lastname || "",
+                email: aff.email || "",
+                telephone: aff.telephone || "",
+                payment_url,
+                register_url,
+              },
+            });
           } else if (channel === "sms") {
             providerResult = await sendSms({ to: aff.telephone, text: body });
           }
@@ -445,27 +488,35 @@ async function processCron(statusCode) {
   }
 
   // ==========================
-  // B) ✅ Newsletter leads (ONLY when cohort is "lead")
+  // B) Newsletter leads (only for lead)
   // ==========================
   if (String(statusCode) === "lead") {
-    const [leads] = await db.query(`SELECT affiliate_newsletter_id, email, telephone, source_url, date_added FROM affiliate_newsletter WHERE is_delete=0 AND date_added >= DATE_SUB(NOW(), INTERVAL ${Number(DAYS_INTERVAL)} DAY) ORDER BY affiliate_newsletter_id DESC LIMIT 500`);
+    const [leads] = await db.query(
+      `SELECT affiliate_newsletter_id, email, telephone, source_url, date_added
+       FROM affiliate_newsletter
+       WHERE is_delete=0
+         AND date_added >= DATE_SUB(NOW(), INTERVAL ${Number(DAYS_INTERVAL)} DAY)
+       ORDER BY affiliate_newsletter_id DESC
+       LIMIT 500`
+    );
 
     totals.newsletter_leads = leads?.length || 0;
 
     if (leads?.length) {
-      const newsletterIds = leads.map((x) => Number(x.affiliate_newsletter_id)).filter(Boolean);
+      const newsletterIds = leads
+        .map((x) => Number(x.affiliate_newsletter_id))
+        .filter(Boolean);
+
       const newsletterLastSentAtMap = await getNewsletterLastSentAtMap(newsletterIds);
 
       for (const lead of leads) {
         const affiliate_newsletter_id = Number(lead.affiliate_newsletter_id);
-        if (!affiliate_newsletter_id) {
-          continue;
-        }
+        if (!affiliate_newsletter_id) continue;
 
         const lastActivityMs = lead.date_added ? new Date(lead.date_added).getTime() : 0;
-        if (!lastActivityMs) {
-          continue;
-        }
+        if (!lastActivityMs) continue;
+
+        const register_url = `${APP_URL}/register`;
 
         const vars = {
           affiliate_newsletter_id,
@@ -473,7 +524,7 @@ async function processCron(statusCode) {
           telephone: lead.telephone || "",
           source_url: lead.source_url || "",
           app_url: APP_URL,
-          register_url: `${APP_URL}/register`,
+          register_url,
         };
 
         const eligible = [];
@@ -494,7 +545,12 @@ async function processCron(statusCode) {
             continue;
           }
 
-          const sentBefore = await alreadySentNewsletter({ affiliate_newsletter_id, rule_id, channel });
+          const sentBefore = await alreadySentNewsletter({
+            affiliate_newsletter_id,
+            rule_id,
+            channel,
+          });
+
           if (sentBefore) {
             totals.skippedAlreadySent++;
             continue;
@@ -510,6 +566,7 @@ async function processCron(statusCode) {
             totals.skippedNoContact++;
             continue;
           }
+
           if (channel === "sms" && !String(lead.telephone || "").trim()) {
             totals.skippedNoContact++;
             continue;
@@ -547,9 +604,21 @@ async function processCron(statusCode) {
           const body = applyPlaceholders(tpl.body || "", vars);
 
           let providerResult = null;
+
           try {
             if (channel === "email") {
-              providerResult = await sendEmail({ to: lead.email, subject, html: body });
+              providerResult = await sendEmail({
+                to: lead.email,
+                subject,
+                html: body,
+                vars: {
+                  cohort: statusCode,
+                  email: lead.email || "",
+                  telephone: lead.telephone || "",
+                  source_url: lead.source_url || "",
+                  register_url,
+                },
+              });
             } else if (channel === "sms") {
               providerResult = await sendSms({ to: lead.telephone, text: body });
             }
@@ -569,15 +638,13 @@ async function processCron(statusCode) {
               provider_message_id: providerResult?.provider_message_id || "",
             });
 
-            newsletterLastSentAtMap.set(`${affiliate_newsletter_id}:${channel}`, new Date().toISOString());
+            newsletterLastSentAtMap.set(
+              `${affiliate_newsletter_id}:${channel}`,
+              new Date().toISOString()
+            );
 
-            if (channel === "email") {
-              totals.sentEmail++;
-            }
-
-            if (channel === "sms") {
-              totals.sentSms++;
-            }
+            if (channel === "email") totals.sentEmail++;
+            if (channel === "sms") totals.sentSms++;
           } else {
             totals.failedSend++;
           }
@@ -598,12 +665,12 @@ async function processCron(statusCode) {
 // ==========================
 // API handler
 // ==========================
-export async function GET(req) {
+export async function GET() {
   const startedAt = nowMs();
 
   const results = [];
   results.push(await processCron("lead"));
-  results.push(await processCron("pending_payment")); // your status table code: pending_payment
+  results.push(await processCron("pending_payment"));
 
   return Response.json({
     ok: true,
