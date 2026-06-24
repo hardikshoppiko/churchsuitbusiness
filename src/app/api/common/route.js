@@ -219,7 +219,7 @@ export async function GET() {
   await sendLeadEmail({
     to: "hardik.shoppiko@gmail.com",
     subject: "Sample Lead Automation Email",
-    html: "This is a dummy lead automation email for testing the premium cron email template.",
+    body: "This is a dummy lead automation email for testing the premium cron email template.",
     firstname: "Test",
     lastname: "User",
     email: "abc@test.com",
