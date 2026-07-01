@@ -12,7 +12,9 @@ export const metadata = {
     "Earn money selling church attire and start your affiliate store.",
 };
 
-export default async function RegisterPage() {
+export default async function RegisterPage({ searchParams }) {
+  const resolvedSearchParams = await searchParams;
+
   const [plans, countries, settings] = await Promise.all([
     getAffiliatePlans(),
     getCountries(),
@@ -21,6 +23,12 @@ export default async function RegisterPage() {
 
   const defaultCountryId = Number(settings?.config?.config_country_id || 0);
   const defaultZoneId = Number(settings?.config?.config_zone_id || 0);
+
+  const automationSource = String(
+    resolvedSearchParams?.automation_source || ""
+  ).trim();
+
+  const sendLogId = Number(resolvedSearchParams?.send_log_id || 0);
 
   return (
     <main className={styles.page}>
@@ -68,6 +76,8 @@ export default async function RegisterPage() {
           countries={countries}
           defaultCountryId={defaultCountryId}
           defaultZoneId={defaultZoneId}
+          automationSource={automationSource}
+          sendLogId={sendLogId}
         />
       </div>
     </main>

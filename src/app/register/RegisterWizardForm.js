@@ -185,9 +185,14 @@ export default function RegisterWizardForm({
   countries = [],
   defaultCountryId = 0,
   defaultZoneId = 0,
+  automationSource = "",
+  sendLogId = 0,
 }) {
   const router = useRouter();
   const { toast } = useToast();
+
+  const safeAutomationSource = String(automationSource || "").trim();
+  const safeSendLogId = Number(sendLogId || 0);
 
   const [step, setStep] = useState(1);
   const [affiliateId, setAffiliateId] = useState(null);
@@ -399,6 +404,13 @@ export default function RegisterWizardForm({
     return plans.find((p) => Number(p.affiliate_plan_id) === pid) || null;
   }
 
+  function getAutomationPayload() {
+    return {
+      automation_source: safeAutomationSource,
+      send_log_id: safeSendLogId,
+    };
+  }
+
   async function checkDomainAvaibilityStatus(domainParam) {
     const website = String(domainParam ?? getValues("website") ?? "").trim();
     if (!website) return;
@@ -536,6 +548,7 @@ export default function RegisterWizardForm({
         lastname: getValues("lastname"),
         email: getValues("email"),
         telephone: getValues("telephone"),
+        ...getAutomationPayload(),
       };
 
       const { res, data } = await postRegister(payload);
@@ -570,6 +583,7 @@ export default function RegisterWizardForm({
       lastname: getValues("lastname"),
       email: getValues("email"),
       telephone: getValues("telephone"),
+      ...getAutomationPayload(),
     };
 
     const { res, data } = await postRegister(payload);
@@ -633,7 +647,7 @@ export default function RegisterWizardForm({
 
     const plan = getSelectedPlanInfo();
 
-    const payload = {
+        const payload = {
       step: 2,
       affiliate_id: affiliateId,
 
@@ -689,6 +703,7 @@ export default function RegisterWizardForm({
       user_added: 0,
       user_modified: 0,
       is_delete: 0,
+      ...getAutomationPayload(),
     };
 
     const { res, data } = await postRegister(payload);
@@ -768,6 +783,7 @@ export default function RegisterWizardForm({
       password: getValues("password"),
       confirm: getValues("confirm"),
       agree_terms: getValues("agree_terms"),
+      ...getAutomationPayload(),
     };
 
     const { res, data } = await postRegister(payload);

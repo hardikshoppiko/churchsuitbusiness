@@ -13,7 +13,6 @@ import {
   getClientIp,
 } from "@/lib/db-utils";
 
-
 function stableStringify(obj) {
   const allKeys = [];
   JSON.stringify(obj, (k, v) => (allKeys.push(k), v));
@@ -35,12 +34,9 @@ export async function recordAffiliateActivity({
   const aid = Number(affiliate_id || 0);
   if (!aid || !key) return false;
 
-  // store payload + hash (hash is optional but helpful for debugging)
   const payload = { ...data, _hash: hashPayload(data) };
   const json = JSON.stringify(payload);
 
-  // ✅ Insert once per (affiliate_id + key)
-  // ✅ Next time same step comes, it will UPDATE instead of inserting a new row
   const sql = `
     INSERT INTO affiliate_activity
       (affiliate_id, \`key\`, data, ip, date_added)
@@ -56,9 +52,6 @@ export async function recordAffiliateActivity({
   return true;
 }
 
-/**
- * INSERT INTO affiliate_extension (OpenCart style)
- */
 async function installModule(type, code, affiliate_id) {
   const sql = `
     INSERT INTO affiliate_extension SET
@@ -70,11 +63,6 @@ async function installModule(type, code, affiliate_id) {
   return res.insertId;
 }
 
-/**
- * INSERT affiliate settings (OpenCart style)
- * - Deletes existing entries for affiliate+code
- * - Inserts each key/value pair
- */
 async function addAffiliateSettings(code, data, affiliate_id = 0) {
   await db.query(`
     DELETE FROM affiliate_setting
@@ -419,7 +407,6 @@ async function addCategoryProductsModule(affiliate_id) {
   await db.query(sql);
 }
 
-/** helper: check affiliate exists */
 async function getAffiliateById(affiliate_id) {
   const affId = Number(affiliate_id);
   if (!affId) return null;
@@ -427,9 +414,86 @@ async function getAffiliateById(affiliate_id) {
   return rows?.[0] || null;
 }
 
-/** helper: safe placeholder store name */
 function makeTempStoreName() {
   return `TEMP-${Date.now()}`;
+}
+
+async function completeAutomationConversion({
+  affiliate_id,
+  affiliate_status_id = 0,
+  automation_source = "",
+  send_log_id = 0,
+}) {
+  const affiliateId = Number(affiliate_id || 0);
+  const affiliateStatusId = Number(affiliate_status_id || 0);
+  const sendLogId = Number(send_log_id || 0);
+  const automationSource = String(automation_source || "").trim();
+
+  if (!affiliateId || !sendLogId || !automationSource) {
+    return false;
+  }
+
+  await db.query(`
+    UPDATE affiliate
+    SET stop_automation = 1
+    WHERE affiliate_id = '${affiliateId}'
+    LIMIT 1
+  `);
+
+  if (automationSource === "affiliate") {
+    await db.query(`
+      UPDATE affiliate_automation_send_log
+      SET
+        converted = 1,
+        converted_at = NOW(),
+        converted_affiliate_id = '${affiliateId}',
+        converted_status_id = ${affiliateStatusId || "NULL"},
+        conversion_source_send_log_id = '${sendLogId}'
+      WHERE send_log_id = '${sendLogId}'
+      LIMIT 1
+    `);
+
+    return true;
+  }
+
+  if (automationSource === "newsletter") {
+    const [rows] = await db.query(`
+      SELECT affiliate_newsletter_id
+      FROM affiliate_automation_newsletter_send_log
+      WHERE send_log_id = '${sendLogId}'
+      LIMIT 1
+    `);
+
+    const newsletter = rows?.[0] || null;
+
+    if (newsletter?.affiliate_newsletter_id) {
+      await db.query(`
+        UPDATE affiliate_newsletter
+        SET
+          is_registered = 1,
+          converted_affiliate_id = '${affiliateId}',
+          converted_at = NOW()
+        WHERE affiliate_newsletter_id = '${Number(newsletter.affiliate_newsletter_id)}'
+        LIMIT 1
+      `);
+    }
+
+    await db.query(`
+      UPDATE affiliate_automation_newsletter_send_log
+      SET
+        converted = 1,
+        converted_at = NOW(),
+        converted_affiliate_id = '${affiliateId}',
+        converted_status_id = ${affiliateStatusId || "NULL"},
+        conversion_source_send_log_id = '${sendLogId}'
+      WHERE send_log_id = '${sendLogId}'
+      LIMIT 1
+    `);
+
+    return true;
+  }
+
+  return false;
 }
 
 async function godaddyCheckDomain(domainRaw) {
@@ -440,7 +504,6 @@ async function godaddyCheckDomain(domainRaw) {
     .replace(/^https?:\/\//i, "")
     .replace(/^www\./i, "");
 
-  // Validate like PHP (domain url must be valid)
   const domainOk = /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain_name);
   if (!domainOk) {
     json.error = "Warning: Please enter valid URL!";
@@ -461,13 +524,11 @@ async function godaddyCheckDomain(domainRaw) {
     "Content-Type": "application/json",
   };
 
-  // 1) availability
   const url = `${BASE_URL}/v1/domains/available?domain=${encodeURIComponent(domain_name)}&checkType=FAST&forTransfer=false`;
 
   const res = await fetch(url, { method: "GET", headers: header, cache: "no-store" });
   const final_result = await res.json().catch(() => ({}));
 
-  // Similar to your PHP check
   if (final_result?.code === "ACCESS_DENIED") {
     json.error = "GoDaddy ACCESS_DENIED";
     return json;
@@ -479,11 +540,9 @@ async function godaddyCheckDomain(domainRaw) {
     return json;
   }
 
-  // Not available → suggestions
   json.error = "Warning: Domain not available!";
   json.domain_not_available = true;
 
-  // suggestion query: first token before dot (like PHP)
   const base = domain_name.replace(/^www\./i, "");
   const parts = base.split(".");
   const keyword = parts[0] || base;
@@ -512,7 +571,9 @@ async function godaddyCheckDomain(domainRaw) {
 export async function POST(req) {
   const body = await req.json().catch(() => ({}));
 
-  // domain availability action (NO new route)
+  const automation_source = String(body.automation_source || "").trim();
+  const send_log_id = Number(body.send_log_id || 0);
+
   if (String(body?.action || "") === "check_domain") {
     const domain_name = body?.domain_name || "";
     const result = await godaddyCheckDomain(domain_name);
@@ -525,12 +586,8 @@ export async function POST(req) {
     return Response.json({ message: "step is required (1,2,3)" }, { status: 400 });
   }
 
-  // shared
   const ip = getClientIp(req);
 
-  // ------------------------------------------------------------
-  // STEP 1: create OR update affiliate with personal info only
-  // ------------------------------------------------------------
   if (step === 1) {
     const firstname = dbEscape(body.firstname);
     const lastname = dbEscape(body.lastname);
@@ -539,7 +596,6 @@ export async function POST(req) {
 
     const incomingAffiliateId = Number(body?.affiliate_id || 0) || 0;
 
-    // validations (only personal)
     if (!firstname) return Response.json({ message: "firstname is required" }, { status: 400 });
     if (firstname.length < 1 || firstname.length > 32) {
       return Response.json({ message: "First name must be between 1 to 32 characters" }, { status: 400 });
@@ -560,7 +616,6 @@ export async function POST(req) {
       return Response.json({ message: "Phone/Mobile must be exactly 10 digits (numbers only)" }, { status: 400 });
     }
 
-    // ✅ uniqueness checks (ignore self if updating)
     const notSelf = incomingAffiliateId ? `AND affiliate_id <> ${incomingAffiliateId}` : "";
 
     const [emailRows] = await db.query(`
@@ -585,7 +640,6 @@ export async function POST(req) {
       return Response.json({ message: "Phone/Mobile already exists" }, { status: 409 });
     }
 
-    // ✅ If affiliate_id provided and exists -> UPDATE (do NOT insert again)
     if (incomingAffiliateId) {
       const existing = await getAffiliateById(incomingAffiliateId);
       if (existing) {
@@ -600,7 +654,7 @@ export async function POST(req) {
           WHERE affiliate_id=${incomingAffiliateId}
           LIMIT 1
         `);
-        
+
         await recordAffiliateActivity({
           affiliate_id: incomingAffiliateId,
           key: "register_step1_submit",
@@ -612,10 +666,8 @@ export async function POST(req) {
       }
     }
 
-    // ✅ Otherwise create minimal row (insert)
     const tempStore = makeTempStoreName();
 
-    // set a temporary password hash (will be overwritten in step3)
     const salt = generateSalt();
     const tmpPwd = `tmp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const hashPassword = ocHashPassword(tmpPwd, salt);
@@ -690,9 +742,6 @@ export async function POST(req) {
     return Response.json({ success: true, step: 1, affiliate_id, mode: "inserted" });
   }
 
-  // ------------------------------------------------------------
-  // STEP 2: update plan + business info
-  // ------------------------------------------------------------
   if (step === 2) {
     const affiliate_id = Number(body.affiliate_id || 0);
     if (!affiliate_id) return Response.json({ message: "affiliate_id is required" }, { status: 400 });
@@ -708,12 +757,6 @@ export async function POST(req) {
 
     const stripe_plan_id = dbEscape(body.stripe_plan_id || "");
 
-    const price_schema = Number(body.price_schema || 0);
-    const default_markup = Number(body.default_markup || 0);
-    const retail_price_commission = Number(body.retail_price_commission || 0);
-    const is_catalog_access = body.is_catalog_access;
-
-    // validations step2
     if (!affiliate_plan_id) {
       return Response.json({ message: "affiliate_plan_id is required" }, { status: 400 });
     }
@@ -725,7 +768,6 @@ export async function POST(req) {
       return Response.json({ message: "Business name must be between 3 to 32 characters" }, { status: 400 });
     }
 
-    // website optional but validate if present
     if (website_domain) {
       const domainOk = /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(website_domain);
       if (!domainOk) {
@@ -733,7 +775,6 @@ export async function POST(req) {
       }
     }
 
-    // uniqueness checks for business_name + website (email/tel already done in step1)
     const [bizRows] = await db.query(
       `SELECT affiliate_id FROM affiliate WHERE LOWER(store_name)=LOWER('${dbEscape(business_name)}') AND affiliate_id<>${affiliate_id} LIMIT 1`
     );
@@ -746,7 +787,6 @@ export async function POST(req) {
       if (webRows?.length) return Response.json({ message: "Website already exists" }, { status: 409 });
     }
 
-    // update
     await db.query(`
       UPDATE affiliate SET
         affiliate_type='${affiliate_plan_id}',
@@ -758,7 +798,7 @@ export async function POST(req) {
         ip='${dbEscape(ip)}'
       WHERE affiliate_id=${affiliate_id}
     `);
-    
+
     await recordAffiliateActivity({
       affiliate_id: affiliate_id,
       key: "register_step2_submit",
@@ -766,18 +806,9 @@ export async function POST(req) {
       ip,
     });
 
-    // NOTE:
-    // price_schema/default_markup/retail_price_commission/is_catalog_access are used later in step3 settings/demo creation.
-    // We keep them in memory from request (client sends again in step3 OR you can store them in affiliate table if you have columns).
-    // For now: client should resend them in step3 as well OR you can store them somewhere.
-    // We will REQUIRE step3 request to include these values again (same as your previous single-step flow).
-
     return Response.json({ success: true, step: 2, affiliate_id });
   }
 
-  // ------------------------------------------------------------
-  // STEP 3: update address + password + terms, then run FULL setup
-  // ------------------------------------------------------------
   if (step === 3) {
     const affiliate_id = Number(body.affiliate_id || 0);
     if (!affiliate_id) return Response.json({ message: "affiliate_id is required" }, { status: 400 });
@@ -801,7 +832,6 @@ export async function POST(req) {
       body.agree_terms === "1" ||
       body.agree_terms === 1;
 
-    // validations step3
     if (!address_1) return Response.json({ message: "address_1 is required" }, { status: 400 });
     if (!city) return Response.json({ message: "city is required" }, { status: 400 });
     if (!country_id) return Response.json({ message: "country_id is required" }, { status: 400 });
@@ -818,13 +848,11 @@ export async function POST(req) {
       return Response.json({ message: "You must agree to the Terms & Conditions" }, { status: 400 });
     }
 
-    // these must be present for your original setup logic
     const price_schema = Number(body.price_schema || 0);
     const default_markup = Number(body.default_markup || 0);
     const retail_price_commission = Number(body.retail_price_commission || 0);
     const is_catalog_access = body.is_catalog_access;
 
-    // set real password now
     const salt = generateSalt();
     const hashPassword = ocHashPassword(password, salt);
 
@@ -843,15 +871,13 @@ export async function POST(req) {
         ip='${dbEscape(ip)}'
       WHERE affiliate_id=${affiliate_id}
     `);
-    
-    // This event is IMPORTANT for automation rules:
-    // after step3 you redirect to payment page
-    await recordAffiliateActivity(affiliate_id, "register_step3_submit", {
-      step: 3,
-      city: body.city,
-      country_id,
-      zone_id,
-    }, ip, 120);
+
+    await recordAffiliateActivity({
+      affiliate_id: affiliate_id,
+      key: "register_step3_submit",
+      data: { step: 3, city: body.city, country_id, zone_id },
+      ip,
+    });
 
     await recordAffiliateActivity({
       affiliate_id: affiliate_id,
@@ -867,9 +893,6 @@ export async function POST(req) {
       ip,
     });
 
-    // --------------------------------------------
-    // NOW RUN YOUR ORIGINAL "heavy" setup
-    // --------------------------------------------
     const firstname = dbEscape(affiliate.firstname || "");
     const lastname = dbEscape(affiliate.lastname || "");
     const email = dbEscape(String(affiliate.email || "")).toLowerCase();
@@ -877,7 +900,6 @@ export async function POST(req) {
     const business_name = dbEscape(affiliate.store_name || "");
     const website = dbEscape(affiliate.website || "");
 
-    // 1) Create affiliate_user
     const username = email;
 
     const affiliateUserQuery = `INSERT INTO affiliate_user SET
@@ -901,7 +923,6 @@ export async function POST(req) {
 
     await db.query(affiliateUserQuery);
 
-    // 2) Install totals/modules
     await installModule("total", "sub_total", affiliate_id);
     await addAffiliateSettings(
       "affiliate_sub_total",
@@ -944,7 +965,6 @@ export async function POST(req) {
       affiliate_id
     );
 
-    // 3) Affiliate config settings
     const affiliate_basic_settings = await getAffiliateBasicSettings();
 
     const affiliate_setting = {};
@@ -974,7 +994,6 @@ export async function POST(req) {
     affiliate_setting["affiliate_config_country_id"] = country_id;
     affiliate_setting["affiliate_config_zone_id"] = zone_id;
 
-    // ✅ keep your defaults (same as before)
     affiliate_setting["affiliate_config_currency"] = "USD";
     affiliate_setting["affiliate_config_order_status_id"] = 2;
     affiliate_setting["affiliate_config_processing_status"] = [2];
@@ -1033,25 +1052,28 @@ export async function POST(req) {
 
     await addAffiliateSettings("affiliate_config", affiliate_setting, affiliate_id);
 
-    // 4) demo categories/products only if advanced
     if (isTruthy(is_catalog_access)) {
       const categories = await addAffiliateCategory(affiliate_id);
       await addAffiliateProducts(affiliate_id, categories);
     }
 
-    // 5) default pages
     await addAffiliatePages(affiliate_id, [
       { name: "About Us", description: "About Us", meta_title: "About Us", meta_description: "About Us", sort_order: "1", status: "1" },
     ]);
 
-    // 6) banners + modules
     await addLargeBanners(affiliate_id);
     await addSmallBanners(affiliate_id);
     await addCategoryProductsModule(affiliate_id);
 
+    await completeAutomationConversion({
+      affiliate_id,
+      affiliate_status_id: 1,
+      automation_source,
+      send_log_id,
+    });
+
     return Response.json({ success: true, step: 3, affiliate_id });
   }
 
-  // fallback (should never happen)
   return Response.json({ message: "Invalid step" }, { status: 400 });
 }

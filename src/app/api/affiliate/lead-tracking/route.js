@@ -3,12 +3,29 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+const REDIRECT_URL = "https://churchsuitsbusiness.com/register";
+const DEFAULT_SOURCE_URL = "https://churchsuitsbusiness.com";
+
 function clean(v) {
   return String(v || "").trim();
 }
 
 function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email || "").trim());
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clean(email));
+}
+
+function toTitleCase(value) {
+  return clean(value)
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function isDevelopmentEnv() {
+  return (
+    process.env.NODE_ENV !== "production" ||
+    process.env.APP_ENV === "local" ||
+    process.env.IS_LOCALHOST === "1"
+  );
 }
 
 function getClientIp(req) {
@@ -23,7 +40,7 @@ function getClientIp(req) {
 }
 
 async function addOrUpdateAffiliateNewsletter(data = {}) {
-  const name = clean(data.name);
+  const name = toTitleCase(data.name);
   const email = clean(data.email).toLowerCase();
   const telephone = clean(data.telephone);
   const ip = clean(data.ip);
@@ -34,7 +51,7 @@ async function addOrUpdateAffiliateNewsletter(data = {}) {
     return false;
   }
 
-  let existingRows;
+  let existingRows = [];
 
   if (telephone) {
     [existingRows] = await db.query(
@@ -112,40 +129,28 @@ async function addOrUpdateAffiliateNewsletter(data = {}) {
 }
 
 export async function GET(req) {
-  const redirect = "https://churchsuitsbusiness.com/register";
-
   try {
     const { searchParams } = new URL(req.url);
 
     const email = clean(searchParams.get("email"));
     const telephone = clean(searchParams.get("telephone"));
-    const source_url = clean(searchParams.get("source_url")) || redirect;
+    const source_url = clean(searchParams.get("source_url")) || DEFAULT_SOURCE_URL;
     const name = clean(searchParams.get("name"));
 
     if (!email || !isValidEmail(email)) {
-      return NextResponse.redirect(redirect);
+      return NextResponse.redirect(REDIRECT_URL);
     }
 
     let ip = getClientIp(req);
 
-    if (
-      ip === "::1" ||
-      ip === "127.0.0.1" ||
-      ip.startsWith("192.168.") ||
-      ip.startsWith("10.") ||
-      ip.startsWith("172.")
-    ) {
+    if (isDevelopmentEnv()) {
       ip = "127.0.0.1";
     }
 
     const user_agent = clean(req.headers.get("user-agent"));
 
-    const newsletter_data = {
-      name: name
-        ? name
-            .toLowerCase()
-            .replace(/\b\w/g, (c) => c.toUpperCase())
-        : "",
+    const newsletterData = {
+      name,
       email: email.toLowerCase(),
       telephone,
       ip,
@@ -153,10 +158,12 @@ export async function GET(req) {
       source_url,
     };
 
-    await addOrUpdateAffiliateNewsletter(newsletter_data);
+    await addOrUpdateAffiliateNewsletter(newsletterData);
 
-    return NextResponse.redirect(redirect);
+    return NextResponse.redirect(REDIRECT_URL);
   } catch (error) {
-    return NextResponse.redirect("https://churchsuitsbusiness.com/register");
+    console.error("lead-tracking error:", error);
+
+    return NextResponse.redirect(REDIRECT_URL);
   }
 }
