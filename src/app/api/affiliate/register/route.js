@@ -418,6 +418,57 @@ function makeTempStoreName() {
   return `TEMP-${Date.now()}`;
 }
 
+/* =========================
+   New draft/completed helpers
+========================= */
+async function getCompletedAffiliateByEmail(email, excludeAffiliateId = 0) {
+  const excludeSql = excludeAffiliateId
+    ? `AND affiliate_id <> ${Number(excludeAffiliateId)}`
+    : "";
+
+  const [rows] = await db.query(`
+    SELECT affiliate_id
+    FROM affiliate
+    WHERE LOWER(email)=LOWER('${dbEscape(email)}')
+      AND IFNULL(is_registration_completed, 0) = 1
+      ${excludeSql}
+    LIMIT 1
+  `);
+
+  return rows?.[0] || null;
+}
+
+async function getCompletedAffiliateByTelephone(telephone, excludeAffiliateId = 0) {
+  const excludeSql = excludeAffiliateId
+    ? `AND affiliate_id <> ${Number(excludeAffiliateId)}`
+    : "";
+
+  const [rows] = await db.query(`
+    SELECT affiliate_id
+    FROM affiliate
+    WHERE telephone='${dbEscape(telephone)}'
+      AND IFNULL(is_registration_completed, 0) = 1
+      ${excludeSql}
+    LIMIT 1
+  `);
+
+  return rows?.[0] || null;
+}
+
+async function getDraftAffiliateByEmailAndTelephone(email, telephone) {
+  const [rows] = await db.query(`
+    SELECT *
+    FROM affiliate
+    WHERE LOWER(email)=LOWER('${dbEscape(email)}')
+      AND telephone='${dbEscape(telephone)}'
+      AND IFNULL(is_registration_completed, 0) = 0
+    ORDER BY affiliate_id DESC
+    LIMIT 1
+  `);
+
+  return rows?.[0] || null;
+}
+
 async function completeAutomationConversion({
   affiliate_id,
   affiliate_status_id = 0,
@@ -588,6 +639,9 @@ export async function POST(req) {
 
   const ip = getClientIp(req);
 
+  /* =========================
+     STEP 1
+  ========================= */
   if (step === 1) {
     const firstname = dbEscape(body.firstname);
     const lastname = dbEscape(body.lastname);
@@ -616,39 +670,29 @@ export async function POST(req) {
       return Response.json({ message: "Phone/Mobile must be exactly 10 digits (numbers only)" }, { status: 400 });
     }
 
-    const notSelf = incomingAffiliateId ? `AND affiliate_id <> ${incomingAffiliateId}` : "";
-
-    const [emailRows] = await db.query(`
-      SELECT affiliate_id
-      FROM affiliate
-      WHERE LOWER(email)=LOWER('${dbEscape(email)}')
-      ${notSelf}
-      LIMIT 1
-    `);
-    if (emailRows?.length) {
-      return Response.json({ message: "Email already exists" }, { status: 409 });
-    }
-
-    const [telRows] = await db.query(`
-      SELECT affiliate_id
-      FROM affiliate
-      WHERE telephone='${dbEscape(telephone)}'
-      ${notSelf}
-      LIMIT 1
-    `);
-    if (telRows?.length) {
-      return Response.json({ message: "Phone/Mobile already exists" }, { status: 409 });
-    }
-
+    // Existing draft row from browser/local storage
     if (incomingAffiliateId) {
       const existing = await getAffiliateById(incomingAffiliateId);
-      if (existing) {
+
+      if (existing && Number(existing.is_registration_completed || 0) === 0) {
+        const completedEmail = await getCompletedAffiliateByEmail(email, incomingAffiliateId);
+        if (completedEmail) {
+          return Response.json({ message: "Email already exists" }, { status: 409 });
+        }
+
+        const completedTel = await getCompletedAffiliateByTelephone(telephone, incomingAffiliateId);
+        if (completedTel) {
+          return Response.json({ message: "Phone/Mobile already exists" }, { status: 409 });
+        }
+
         await db.query(`
           UPDATE affiliate SET
             firstname='${firstname}',
             lastname='${lastname}',
             email='${email}',
             telephone='${telephone}',
+            registration_step='1',
+            is_registration_completed='0',
             ip='${dbEscape(ip)}',
             date_modified=NOW()
           WHERE affiliate_id=${incomingAffiliateId}
@@ -658,14 +702,78 @@ export async function POST(req) {
         await recordAffiliateActivity({
           affiliate_id: incomingAffiliateId,
           key: "register_step1_submit",
-          data: { step: 1, firstname: body.firstname, lastname: body.lastname, email: body.email, telephone: body.telephone },
+          data: {
+            step: 1,
+            firstname: body.firstname,
+            lastname: body.lastname,
+            email: body.email,
+            telephone: body.telephone,
+            mode: "updated_existing_draft_by_affiliate_id",
+          },
           ip,
         });
 
-        return Response.json({ success: true, step: 1, affiliate_id: incomingAffiliateId, mode: "updated" });
+        return Response.json({
+          success: true,
+          step: 1,
+          affiliate_id: incomingAffiliateId,
+          mode: "updated",
+        });
       }
     }
 
+    // Block only if completed affiliate exists
+    const completedEmail = await getCompletedAffiliateByEmail(email);
+    if (completedEmail) {
+      return Response.json({ message: "Email already exists" }, { status: 409 });
+    }
+
+    const completedTel = await getCompletedAffiliateByTelephone(telephone);
+    if (completedTel) {
+      return Response.json({ message: "Phone/Mobile already exists" }, { status: 409 });
+    }
+
+    // Resume only if BOTH email + telephone match an incomplete draft
+    const draft = await getDraftAffiliateByEmailAndTelephone(email, telephone);
+
+    if (draft?.affiliate_id) {
+      await db.query(`
+        UPDATE affiliate SET
+          firstname='${firstname}',
+          lastname='${lastname}',
+          email='${email}',
+          telephone='${telephone}',
+          registration_step='1',
+          is_registration_completed='0',
+          ip='${dbEscape(ip)}',
+          date_modified=NOW()
+        WHERE affiliate_id='${Number(draft.affiliate_id)}'
+        LIMIT 1
+      `);
+
+      await recordAffiliateActivity({
+        affiliate_id: Number(draft.affiliate_id),
+        key: "register_step1_submit",
+        data: {
+          step: 1,
+          firstname: body.firstname,
+          lastname: body.lastname,
+          email: body.email,
+          telephone: body.telephone,
+          mode: "resumed_existing_draft",
+        },
+        ip,
+      });
+
+      return Response.json({
+        success: true,
+        step: 1,
+        affiliate_id: Number(draft.affiliate_id),
+        mode: "resumed",
+      });
+    }
+
+    // Otherwise create new draft
     const tempStore = makeTempStoreName();
 
     const salt = generateSalt();
@@ -719,6 +827,8 @@ export async function POST(req) {
         newsletter='1',
         newsletter_text='0',
         affiliate_status_id='15',
+        registration_step='1',
+        is_registration_completed='0',
         approved='0',
         stop_automation='0',
         user_added='0',
@@ -735,19 +845,33 @@ export async function POST(req) {
     await recordAffiliateActivity({
       affiliate_id: affiliate_id,
       key: "register_step1_submit",
-      data: { step: 1, firstname: body.firstname, lastname: body.lastname, email: body.email, telephone: body.telephone },
+      data: {
+        step: 1,
+        firstname: body.firstname,
+        lastname: body.lastname,
+        email: body.email,
+        telephone: body.telephone,
+        mode: "inserted_new_draft",
+      },
       ip,
     });
 
     return Response.json({ success: true, step: 1, affiliate_id, mode: "inserted" });
   }
 
+  /* =========================
+     STEP 2
+  ========================= */
   if (step === 2) {
     const affiliate_id = Number(body.affiliate_id || 0);
-    if (!affiliate_id) return Response.json({ message: "affiliate_id is required" }, { status: 400 });
+    if (!affiliate_id) {
+      return Response.json({ message: "affiliate_id is required" }, { status: 400 });
+    }
 
     const affiliate = await getAffiliateById(affiliate_id);
-    if (!affiliate) return Response.json({ message: "Affiliate not found" }, { status: 404 });
+    if (!affiliate) {
+      return Response.json({ message: "Affiliate not found" }, { status: 404 });
+    }
 
     const affiliate_plan_id = Number(body.affiliate_plan_id || 0);
     const fees = Number(body.fees || 0);
@@ -775,16 +899,31 @@ export async function POST(req) {
       }
     }
 
-    const [bizRows] = await db.query(
-      `SELECT affiliate_id FROM affiliate WHERE LOWER(store_name)=LOWER('${dbEscape(business_name)}') AND affiliate_id<>${affiliate_id} LIMIT 1`
-    );
-    if (bizRows?.length) return Response.json({ message: "Business name already exists" }, { status: 409 });
+    // Block only against completed registrations
+    const [bizRows] = await db.query(`
+      SELECT affiliate_id
+      FROM affiliate
+      WHERE LOWER(store_name)=LOWER('${dbEscape(business_name)}')
+        AND affiliate_id<>${affiliate_id}
+        AND IFNULL(is_registration_completed, 0) = 1
+      LIMIT 1
+    `);
+    if (bizRows?.length) {
+      return Response.json({ message: "Business name already exists" }, { status: 409 });
+    }
 
     if (website_domain) {
-      const [webRows] = await db.query(
-        `SELECT affiliate_id FROM affiliate WHERE LOWER(website)=LOWER('${dbEscape(website_domain)}') AND affiliate_id<>${affiliate_id} LIMIT 1`
-      );
-      if (webRows?.length) return Response.json({ message: "Website already exists" }, { status: 409 });
+      const [webRows] = await db.query(`
+        SELECT affiliate_id
+        FROM affiliate
+        WHERE LOWER(website)=LOWER('${dbEscape(website_domain)}')
+          AND affiliate_id<>${affiliate_id}
+          AND IFNULL(is_registration_completed, 0) = 1
+        LIMIT 1
+      `);
+      if (webRows?.length) {
+        return Response.json({ message: "Website already exists" }, { status: 409 });
+      }
     }
 
     await db.query(`
@@ -794,6 +933,8 @@ export async function POST(req) {
         store_name='${business_name}',
         website='${website}',
         stripe_plan_id='${stripe_plan_id}',
+        registration_step='2',
+        is_registration_completed='0',
         date_modified=NOW(),
         ip='${dbEscape(ip)}'
       WHERE affiliate_id=${affiliate_id}
@@ -802,19 +943,31 @@ export async function POST(req) {
     await recordAffiliateActivity({
       affiliate_id: affiliate_id,
       key: "register_step2_submit",
-      data: { step: 2, affiliate_plan_id: affiliate_plan_id, business_name: body.business_name, website: website_domain || "" },
+      data: {
+        step: 2,
+        affiliate_plan_id: affiliate_plan_id,
+        business_name: body.business_name,
+        website: website_domain || "",
+      },
       ip,
     });
 
     return Response.json({ success: true, step: 2, affiliate_id });
   }
 
+  /* =========================
+     STEP 3
+  ========================= */
   if (step === 3) {
     const affiliate_id = Number(body.affiliate_id || 0);
-    if (!affiliate_id) return Response.json({ message: "affiliate_id is required" }, { status: 400 });
+    if (!affiliate_id) {
+      return Response.json({ message: "affiliate_id is required" }, { status: 400 });
+    }
 
     const affiliate = await getAffiliateById(affiliate_id);
-    if (!affiliate) return Response.json({ message: "Affiliate not found" }, { status: 404 });
+    if (!affiliate) {
+      return Response.json({ message: "Affiliate not found" }, { status: 404 });
+    }
 
     const address_1 = dbEscape(body.address_1);
     const address_2 = dbEscape(body.address_2 || "");
@@ -859,6 +1012,8 @@ export async function POST(req) {
     await db.query(`
       UPDATE affiliate SET
         affiliate_status_id='1',
+        registration_step='3',
+        is_registration_completed='1',
         address_1='${address_1}',
         address_2='${address_2}',
         city='${city}',
@@ -882,7 +1037,15 @@ export async function POST(req) {
     await recordAffiliateActivity({
       affiliate_id: affiliate_id,
       key: "register_step3_submit",
-      data: { step: 3, address_1: address_1, address_2: address_2, city: body.city, postcode: postcode, country_id, zone_id },
+      data: {
+        step: 3,
+        address_1: address_1,
+        address_2: address_2,
+        city: body.city,
+        postcode: postcode,
+        country_id,
+        zone_id,
+      },
       ip,
     });
 
@@ -902,26 +1065,51 @@ export async function POST(req) {
 
     const username = email;
 
-    const affiliateUserQuery = `INSERT INTO affiliate_user SET
-      affiliate_id='${affiliate_id}',
-      username='${username}',
-      password='${dbEscape(hashPassword)}',
-      salt='${dbEscape(salt)}',
-      firstname='${firstname}',
-      lastname='${lastname}',
-      email='${email}',
-      telephone='${telephone}',
-      image='',
-      code='',
-      ip='${dbEscape(ip)}',
-      status='0',
-      user_added='0',
-      date_added=NOW(),
-      date_modified=NOW(),
-      is_delete=0
-    `;
+    const [affiliateUserRows] = await db.query(`
+      SELECT affiliate_user_id
+      FROM affiliate_user
+      WHERE affiliate_id='${affiliate_id}'
+      LIMIT 1
+    `);
 
-    await db.query(affiliateUserQuery);
+    if (affiliateUserRows?.length) {
+      await db.query(`
+        UPDATE affiliate_user SET
+          username='${username}',
+          password='${dbEscape(hashPassword)}',
+          salt='${dbEscape(salt)}',
+          firstname='${firstname}',
+          lastname='${lastname}',
+          email='${email}',
+          telephone='${telephone}',
+          ip='${dbEscape(ip)}',
+          status='0',
+          is_delete=0,
+          date_modified=NOW()
+        WHERE affiliate_id='${affiliate_id}'
+        LIMIT 1
+      `);
+    } else {
+      await db.query(`
+        INSERT INTO affiliate_user SET
+          affiliate_id='${affiliate_id}',
+          username='${username}',
+          password='${dbEscape(hashPassword)}',
+          salt='${dbEscape(salt)}',
+          firstname='${firstname}',
+          lastname='${lastname}',
+          email='${email}',
+          telephone='${telephone}',
+          image='',
+          code='',
+          ip='${dbEscape(ip)}',
+          status='0',
+          user_added='0',
+          date_added=NOW(),
+          date_modified=NOW(),
+          is_delete=0
+      `);
+    }
 
     await installModule("total", "sub_total", affiliate_id);
     await addAffiliateSettings(
