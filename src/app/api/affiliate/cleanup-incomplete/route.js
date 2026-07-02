@@ -2,23 +2,37 @@ export const runtime = "nodejs";
 
 import { db } from "@/lib/db";
 
-const DELETE_AFTER_HOURS = Number(process.env.AFFILIATE_INCOMPLETE_DELETE_AFTER_HOURS || 24);
+const DELETE_AFTER_HOURS = Number(
+  process.env.AFFILIATE_INCOMPLETE_DELETE_AFTER_HOURS || 24
+);
 
-const CRON_TOKEN = String(process.env.AFFILIATE_CLEANUP_CRON_TOKEN || "").trim();
+const CRON_TOKEN = String(
+  process.env.AFFILIATE_CLEANUP_CRON_TOKEN || ""
+).trim();
 
 function num(v) {
   return Number(v || 0);
 }
 
-async function getIncompleteAffiliateIds() {
+async function getIncompleteNewWizardAffiliateIds() {
   const [rows] = await db.query(`
-    SELECT affiliate_id
-    FROM affiliate
-    WHERE IFNULL(is_registration_completed, 0) = 0
-      AND IFNULL(registration_step, 0) < 3
-      AND affiliate_status_id = 15
-      AND date_added < DATE_SUB(NOW(), INTERVAL ${num(DELETE_AFTER_HOURS)} HOUR)
-    ORDER BY affiliate_id ASC
+    SELECT DISTINCT a.affiliate_id
+    FROM affiliate a
+    INNER JOIN affiliate_activity aa
+      ON aa.affiliate_id = a.affiliate_id
+    WHERE IFNULL(a.is_registration_completed, 0) = 0
+      AND IFNULL(a.registration_step, 0) > 0
+      AND IFNULL(a.registration_step, 0) < 3
+      AND a.affiliate_status_id = 15
+      AND a.date_added < DATE_SUB(NOW(), INTERVAL ${num(
+        DELETE_AFTER_HOURS
+      )} HOUR)
+      AND aa.\`key\` IN (
+        'register_step1_submit',
+        'register_step2_submit',
+        'register_step3_submit'
+      )
+    ORDER BY a.affiliate_id ASC
   `);
 
   return (rows || []).map((r) => Number(r.affiliate_id)).filter(Boolean);
@@ -37,8 +51,7 @@ export async function GET(req) {
   try {
     const url = new URL(req.url);
     const token = String(url.searchParams.get("token") || "").trim();
-    const dryRun =
-      String(url.searchParams.get("dry_run") || "").trim() === "1";
+    const dryRun = String(url.searchParams.get("dry_run") || "").trim() === "1";
 
     if (CRON_TOKEN && token !== CRON_TOKEN) {
       return Response.json(
@@ -47,14 +60,14 @@ export async function GET(req) {
       );
     }
 
-    const affiliateIds = await getIncompleteAffiliateIds();
+    const affiliateIds = await getIncompleteNewWizardAffiliateIds();
 
     if (!affiliateIds.length) {
       return Response.json({
         ok: true,
         dry_run: dryRun,
         delete_after_hours: DELETE_AFTER_HOURS,
-        message: "No incomplete affiliates found",
+        message: "No incomplete Next.js wizard affiliates found",
         totals: {
           affiliates: 0,
           affiliate_activity: 0,
@@ -73,13 +86,10 @@ export async function GET(req) {
 
     const idsCsv = affiliateIds.join(",");
 
-    const categoryWhere = `affiliate_id IN (${idsCsv})`;
-    const productWhere = `affiliate_id IN (${idsCsv})`;
-
     const [categoryRows] = await db.query(`
       SELECT category_id
       FROM category
-      WHERE ${categoryWhere}
+      WHERE affiliate_id IN (${idsCsv})
     `);
     const categoryIds = (categoryRows || [])
       .map((r) => Number(r.category_id))
@@ -88,7 +98,7 @@ export async function GET(req) {
     const [productRows] = await db.query(`
       SELECT product_id
       FROM product
-      WHERE ${productWhere}
+      WHERE affiliate_id IN (${idsCsv})
     `);
     const productIds = (productRows || [])
       .map((r) => Number(r.product_id))
@@ -143,11 +153,19 @@ export async function GET(req) {
     };
 
     if (dryRun) {
+      const [previewRows] = await db.query(`
+        SELECT affiliate_id, firstname, lastname, email, telephone, registration_step, is_registration_completed, date_added
+        FROM affiliate
+        WHERE affiliate_id IN (${idsCsv})
+        ORDER BY affiliate_id ASC
+      `);
+
       return Response.json({
         ok: true,
         dry_run: true,
         delete_after_hours: DELETE_AFTER_HOURS,
         affiliate_ids: affiliateIds,
+        preview: previewRows || [],
         totals,
       });
     }
@@ -222,7 +240,9 @@ export async function GET(req) {
         DELETE FROM affiliate
         WHERE affiliate_id IN (${idsCsv})
           AND IFNULL(is_registration_completed, 0) = 0
+          AND IFNULL(registration_step, 0) > 0
           AND IFNULL(registration_step, 0) < 3
+          AND affiliate_status_id = 15
       `);
 
       await db.query("COMMIT");
