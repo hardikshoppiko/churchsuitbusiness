@@ -181,6 +181,7 @@ async function getLiveAffiliateByEmail(email) {
     FROM affiliate
     WHERE LOWER(email) = ?
       AND IFNULL(is_delete, 0) = 0
+      AND status = 1
     ORDER BY affiliate_id DESC
     LIMIT 1
     `,
