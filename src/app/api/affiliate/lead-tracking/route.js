@@ -50,12 +50,10 @@ function normalizeMailchimpValue(value) {
     return "";
   }
 
-  // exact placeholder like *|EMAIL|*
   if (/^\*\|[A-Z0-9_]+\|\*$/i.test(v)) {
     return "";
   }
 
-  // combined unresolved placeholders like "*|FNAME|* *|LNAME|*"
   const removed = v.replace(/\*\|[A-Z0-9_]+\|\*/gi, "").trim();
 
   if (!removed) {
@@ -77,6 +75,14 @@ function normalizeTelephone(value) {
   }
 
   return phone;
+}
+
+function buildFullName(firstname, lastname) {
+  const first = clean(firstname);
+  const last = clean(lastname);
+  const full = `${first} ${last}`.trim();
+
+  return toTitleCase(full);
 }
 
 /**
@@ -166,6 +172,112 @@ async function getTelephoneByEmail(email) {
 }
 
 /**
+ * Find name by email from old/new system tables
+ * Order:
+ * 1) affiliate
+ * 2) customer
+ * 3) order
+ * 4) shopify_order
+ *
+ * Assumption:
+ * - affiliate/customer/order have firstname + lastname
+ * - shopify_order may also have firstname + lastname
+ */
+async function getNameByEmail(email) {
+  const safeEmail = clean(email).toLowerCase();
+
+  if (!safeEmail) {
+    return "";
+  }
+
+  let [rows] = await db.query(
+    `
+    SELECT firstname, lastname
+    FROM affiliate
+    WHERE LOWER(email) = ?
+      AND (
+        (firstname IS NOT NULL AND firstname != '')
+        OR
+        (lastname IS NOT NULL AND lastname != '')
+      )
+    ORDER BY affiliate_id DESC
+    LIMIT 1
+    `,
+    [safeEmail]
+  );
+
+  if (rows?.[0]) {
+    const name = buildFullName(rows[0].firstname, rows[0].lastname);
+    if (name) return name;
+  }
+
+  [rows] = await db.query(
+    `
+    SELECT firstname, lastname
+    FROM customer
+    WHERE LOWER(email) = ?
+      AND (
+        (firstname IS NOT NULL AND firstname != '')
+        OR
+        (lastname IS NOT NULL AND lastname != '')
+      )
+    ORDER BY customer_id DESC
+    LIMIT 1
+    `,
+    [safeEmail]
+  );
+
+  if (rows?.[0]) {
+    const name = buildFullName(rows[0].firstname, rows[0].lastname);
+    if (name) return name;
+  }
+
+  [rows] = await db.query(
+    `
+    SELECT firstname, lastname
+    FROM \`order\`
+    WHERE LOWER(email) = ?
+      AND (
+        (firstname IS NOT NULL AND firstname != '')
+        OR
+        (lastname IS NOT NULL AND lastname != '')
+      )
+    ORDER BY order_id DESC
+    LIMIT 1
+    `,
+    [safeEmail]
+  );
+
+  if (rows?.[0]) {
+    const name = buildFullName(rows[0].firstname, rows[0].lastname);
+    if (name) return name;
+  }
+
+  [rows] = await db.query(
+    `
+    SELECT firstname, lastname
+    FROM shopify_order
+    WHERE LOWER(email) = ?
+      AND (
+        (firstname IS NOT NULL AND firstname != '')
+        OR
+        (lastname IS NOT NULL AND lastname != '')
+      )
+    ORDER BY shopify_order_id DESC
+    LIMIT 1
+    `,
+    [safeEmail]
+  );
+
+  if (rows?.[0]) {
+    const name = buildFullName(rows[0].firstname, rows[0].lastname);
+    if (name) return name;
+  }
+
+  return "";
+}
+
+/**
  * live affiliate means affiliate_status_id = 100
  */
 async function getLiveAffiliateByEmail(email) {
@@ -208,7 +320,7 @@ async function getLiveAffiliateByEmail(email) {
 }
 
 async function addOrUpdateAffiliateNewsletter(data = {}) {
-  const name = toTitleCase(normalizeMailchimpValue(data.name));
+  let name = toTitleCase(normalizeMailchimpValue(data.name));
   const email = clean(normalizeMailchimpValue(data.email)).toLowerCase();
   let telephone = normalizeTelephone(data.telephone);
   const ip = clean(data.ip);
@@ -221,9 +333,12 @@ async function addOrUpdateAffiliateNewsletter(data = {}) {
     return false;
   }
 
-  // if telephone blank, try to fetch from system by email
   if (!telephone) {
     telephone = await getTelephoneByEmail(email);
+  }
+
+  if (!name) {
+    name = await getNameByEmail(email);
   }
 
   const liveAffiliate = await getLiveAffiliateByEmail(email);
