@@ -194,6 +194,7 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
       UPDATE affiliate
       SET
         affiliate_status_id=2,
+        is_registration_completed='1',
         approved=1,
         status=1,
         stripe_customer_id='${dbEscape(String(customerId || ""))}',
