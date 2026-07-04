@@ -133,6 +133,41 @@ async function getPaymentStage(affiliateId) {
   return ((total === 0) ? "first" : "renewal");
 }
 
+async function updateAffiliateNewsletterOnFirstPayment(affiliate_id) {
+  const affId = Number(affiliate_id || 0);
+
+  if (!affId) {
+    return false;
+  }
+
+  const [rows] = await db.query(`
+    SELECT affiliate_id, email
+    FROM affiliate
+    WHERE affiliate_id='${affId}'
+      AND is_delete=0
+    LIMIT 1
+  `);
+
+  const affiliate = rows?.[0];
+
+  if (!affiliate?.email) {
+    return false;
+  }
+
+  await db.query(`
+    UPDATE affiliate_newsletter
+    SET
+      is_registered = 1,
+      converted_affiliate_id = '${affId}',
+      converted_at = NOW(),
+      status = 1,
+      is_delete = 0
+    WHERE LOWER(email) = LOWER('${dbEscape(String(affiliate.email).toLowerCase())}')
+  `);
+
+  return true;
+}
+
 async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId, customerId, eventType }) {
   const affId = Number(affiliate_id);
 
@@ -175,6 +210,10 @@ async function markPaidAndInsertPayment({ affiliate_id, invoice, subscriptionId,
       SET status=1, date_modified=NOW()
       WHERE affiliate_id=${affId}
     `);
+
+    // Update newsletter subscription on first payment
+    await updateAffiliateNewsletterOnFirstPayment(affId);
+
   } else {
     // RENEWAL: only extend end_date (do not touch affiliate_user)
     await db.query(`
