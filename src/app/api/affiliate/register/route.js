@@ -1009,11 +1009,29 @@ export async function POST(req) {
     const salt = generateSalt();
     const hashPassword = ocHashPassword(password, salt);
 
+    // await db.query(`
+    //   UPDATE affiliate SET
+    //     affiliate_status_id='1',
+    //     registration_step='3',
+    //     is_registration_completed='1',
+    //     address_1='${address_1}',
+    //     address_2='${address_2}',
+    //     city='${city}',
+    //     postcode='${postcode}',
+    //     country_id='${country_id}',
+    //     zone_id='${zone_id}',
+    //     password='${dbEscape(hashPassword)}',
+    //     salt='${dbEscape(salt)}',
+    //     date_modified=NOW(),
+    //     ip='${dbEscape(ip)}'
+    //   WHERE affiliate_id=${affiliate_id}
+    // `);
+
     await db.query(`
       UPDATE affiliate SET
-        affiliate_status_id='1',
+        affiliate_status_id='15',
         registration_step='3',
-        is_registration_completed='1',
+        is_registration_completed='0',
         address_1='${address_1}',
         address_2='${address_2}',
         city='${city}',
