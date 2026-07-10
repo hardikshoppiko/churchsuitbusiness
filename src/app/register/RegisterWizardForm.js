@@ -706,7 +706,7 @@ export default function RegisterWizardForm({
       ...getAutomationPayload(),
     };
 
-    console.log("Step 2 payload:", payload);
+    // console.log("Step 2 payload:", payload);
 
     const { res, data } = await postRegister(payload);
     if (!res.ok) {
