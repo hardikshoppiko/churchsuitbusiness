@@ -811,7 +811,7 @@ export async function POST(req) {
         recurring_billing_id='0',
         start_date=NOW(),
         end_date=NOW(),
-        store_category_type='0',
+        store_category_type='1',
         commission='0',
         tax='',
         payment='',
@@ -1000,6 +1000,8 @@ export async function POST(req) {
     if (!agree) {
       return Response.json({ message: "You must agree to the Terms & Conditions" }, { status: 400 });
     }
+
+    // console.log("Body: ", body);
 
     const price_schema = Number(body.price_schema || 0);
     const default_markup = Number(body.default_markup || 0);

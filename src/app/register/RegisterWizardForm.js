@@ -706,6 +706,8 @@ export default function RegisterWizardForm({
       ...getAutomationPayload(),
     };
 
+    console.log("Step 2 payload:", payload);
+
     const { res, data } = await postRegister(payload);
     if (!res.ok) {
       const msg = data?.message || "Step 2 failed. Please try again.";
@@ -769,6 +771,8 @@ export default function RegisterWizardForm({
       return;
     }
 
+    const plan = getSelectedPlanInfo();
+
     const payload = {
       step: 3,
       affiliate_id: affiliateId,
@@ -783,6 +787,12 @@ export default function RegisterWizardForm({
       password: getValues("password"),
       confirm: getValues("confirm"),
       agree_terms: getValues("agree_terms"),
+
+      price_schema: plan?.price_schema || "",
+      default_markup: plan?.default_markup || 0,
+      retail_price_commission: plan?.retail_price_commission || 0,
+      is_catalog_access: plan?.is_catalog_access || 0,
+
       ...getAutomationPayload(),
     };
 
